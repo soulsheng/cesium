@@ -50,6 +50,8 @@ define([
         '../Shaders/CentralBodyFSFilter',
         '../Shaders/CentralBodyVSPole',
         '../Shaders/CentralBodyFSPole',
+        '../Shaders/CentralBodyVSReproject',
+        '../Shaders/CentralBodyFSReproject',
         '../Shaders/GroundAtmosphere',
         '../Shaders/SkyAtmosphereFS',
         '../Shaders/SkyAtmosphereVS'
@@ -104,6 +106,8 @@ define([
         CentralBodyFSFilter,
         CentralBodyVSPole,
         CentralBodyFSPole,
+        CentralBodyVSReproject,
+        CentralBodyFSReproject,
         GroundAtmosphere,
         SkyAtmosphereFS,
         SkyAtmosphereVS) {
@@ -266,6 +270,10 @@ define([
         this._quadV = undefined;
 
         this._fb = undefined;
+
+        this._spReproject = undefined;
+        this._vaReproject = undefined;
+        this._fbReproject = undefined;
 
         this._vaNorthPole = undefined;
         this._vaSouthPole = undefined;
@@ -925,7 +933,24 @@ define([
                 continue;
             }
 
-            tile.image = tile.projection.toWgs84(tile.extent, tile.image);
+            state.context.draw({
+                framebuffer : this._fbReproject,
+                shaderProgram : this._spReproject,
+                renderState : this._rsColor,
+                primitiveType : PrimitiveType.TRIANGLE_FAN,
+                vertexArray : this._vaReproject,
+                uniformMap : {
+                    u_texture : function() {
+                        return tile.texture;
+                    }
+                }
+            });
+
+            // TODO: clean this up
+            this._fbReproject._bind();
+            tile.texture.copyFromFramebuffer();
+            this._fbReproject._unBind();
+
             tile.state = TileState.REPROJECTED;
             tile.projection = Projections.WGS84;
         }
@@ -971,13 +996,13 @@ define([
             this._imageQueue.enqueue(tile);
             tile.state = TileState.IMAGE_LOADING;
         } else if (tile.state === TileState.IMAGE_LOADED) {
-            // or re-project the image
-            this._reprojectQueue.enqueue(tile);
-            tile.state = TileState.REPROJECTING;
-        } else if (tile.state === TileState.REPROJECTED) {
-            // or copy to a texture
+            // or create texture
             this._textureQueue.enqueue(tile);
             tile.state = TileState.TEXTURE_LOADING;
+        } else if (tile.state === TileState.TEXTURE_LOADED) {
+            // or reproject
+            this._reprojectQueue.enqueue(tile);
+            tile.state = TileState.REPROJECTING;
         } else if (retry) {
             // or retry a failed image
             if (maxTimePassed) {
@@ -1542,6 +1567,43 @@ define([
             });
 
             this._prefetchImages();
+
+            this._spReproject = this._spReproject && this._spReproject.release();
+            this._vaReproject = this._vaReproject && this._vaReproject.destroy();
+            this._fbReproject = this._fbReproject && this._fbReproject.destroy();
+
+            var reprojectWidth = (typeof this._dayTileProvider.tileWidth === 'undefined') ? width : this._dayTileProvider.tileWidth;
+            var reprojectHeight = (typeof this._dayTileProvider.tileHeight === 'undefined') ? height : this._dayTileProvider.tileHeight;
+            var reprojectMesh = {
+                attributes : {
+                    position : {
+                        componentDatatype : ComponentDatatype.FLOAT,
+                        componentsPerAttribute : 2,
+                        values : [0.0, 0.0, reprojectWidth, 0.0, reprojectWidth, reprojectHeight, 0.0, reprojectHeight]
+                    },
+
+                    textureCoordinates : {
+                        componentDatatype : ComponentDatatype.FLOAT,
+                        componentsPerAttribute : 2,
+                        values : [0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0]
+                    }
+                }
+            };
+            var reprojectAttribInds = { position : 0, textureCoordinates : 1 };
+            this._vaReproject = context.createVertexArrayFromMesh({
+                mesh : reprojectMesh,
+                attributeIndices : reprojectAttribInds,
+                bufferUsage : BufferUsage.STATIC_DRAW
+            });
+            this._spReproject = context.getShaderCache().getShaderProgram(
+                    CentralBodyVSReproject, CentralBodyFSReproject, reprojectAttribInds);
+            this._fbReproject = context.createFramebuffer({
+                colorTexture : context.createTexture2D({
+                    width : reprojectWidth,
+                    height : reprojectHeight,
+                    pixelFormat : PixelFormat.RGB
+                })
+            });
         }
 
         var hasLogo = this._dayTileProvider && this._dayTileProvider.getLogo;
@@ -1958,8 +2020,8 @@ define([
         this._fillPoles(state);
 
         this._throttleImages(state);
-        this._throttleReprojection(state);
         this._throttleTextures(state);
+        this._throttleReprojection(state);
 
         var stack = [this._rootTile];
         while (stack.length !== 0) {
@@ -1969,14 +2031,14 @@ define([
                 continue;
             }
 
-            if (!this._dayTileProvider || (tile.state === TileState.TEXTURE_LOADED && tile.texture && !tile.texture.isDestroyed())) {
+            if (!this._dayTileProvider || (tile.state === TileState.REPROJECTED && tile.texture && !tile.texture.isDestroyed())) {
                 if ((this._dayTileProvider && tile.zoom + 1 > this._dayTileProvider.zoomMax) || !this.refine(tile, state)) {
                     this._enqueueTile(tile, state);
                 } else {
                     var children = tile.getChildren();
                     for (var i = 0; i < children.length; ++i) {
                         var child = children[i];
-                        if ((child.state === TileState.TEXTURE_LOADED && child.texture && !child.texture.isDestroyed())) {
+                        if ((child.state === TileState.REPROJECTED && child.texture && !child.texture.isDestroyed())) {
                             stack.push(child);
                         } else {
                             this._enqueueTile(tile, state);
