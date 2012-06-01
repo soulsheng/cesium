@@ -940,6 +940,15 @@ define([
                 primitiveType : PrimitiveType.TRIANGLE_FAN,
                 vertexArray : this._vaReproject,
                 uniformMap : {
+                    u_north : function() {
+                        return tile.extent.north;
+                    },
+                    u_south : function() {
+                        return tile.extent.south;
+                    },
+                    u_height : function() {
+                        return tile.texture.getHeight();
+                    },
                     u_texture : function() {
                         return tile.texture;
                     }
@@ -950,6 +959,15 @@ define([
             this._fbReproject._bind();
             tile.texture.copyFromFramebuffer();
             this._fbReproject._unBind();
+
+            tile.texture.generateMipmap(MipmapHint.NICEST);
+            tile.texture.setSampler({
+                wrapS : TextureWrap.CLAMP,
+                wrapT : TextureWrap.CLAMP,
+                minificationFilter : TextureMinificationFilter.LINEAR_MIPMAP_LINEAR,
+                magnificationFilter : TextureMagnificationFilter.LINEAR,
+                maximumAnisotropy : state.context.getMaximumTextureFilterAnisotropy() || 8 // TODO: Remove Chrome work around
+            });
 
             tile.state = TileState.REPROJECTED;
             tile.projection = Projections.WGS84;
@@ -968,14 +986,14 @@ define([
 
             tile.texture = this._textureCache.find(tile);
             tile.texture.copyFrom(tile.image);
-            tile.texture.generateMipmap(MipmapHint.NICEST);
             tile.texture.setSampler({
                 wrapS : TextureWrap.CLAMP,
                 wrapT : TextureWrap.CLAMP,
-                minificationFilter : TextureMinificationFilter.LINEAR_MIPMAP_LINEAR,
-                magnificationFilter : TextureMagnificationFilter.LINEAR,
-                maximumAnisotropy : state.context.getMaximumTextureFilterAnisotropy() || 8 // TODO: Remove Chrome work around
+                minificationFilter : TextureMinificationFilter.NEAREST,
+                magnificationFilter : TextureMagnificationFilter.NEAREST,
+                maximumAnisotropy : 1.0
             });
+
             tile.state = TileState.TEXTURE_LOADED;
             tile.image = undefined;
         }
