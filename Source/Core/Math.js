@@ -269,6 +269,16 @@ define([
     };
 
     /**
+     * DOC_TBA
+     */
+    CesiumMath.splitDouble = function(a) {
+        var array = new Float32Array(2);
+        array[0] = a;
+        array[1] = a - array[0];
+        return new Cartesian2(array[0], array[1]);
+    };
+
+    /**
      * 1/pi
      *
      * @constant
