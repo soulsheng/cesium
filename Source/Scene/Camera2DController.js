@@ -207,7 +207,7 @@ define([
 
         if (frustum.left === null || frustum.right === null ||
             frustum.top === null || frustum.bottom === null) {
-                throw new DeveloperError("The camera frustum is expected to be orthographic for 2D camera control.", "frustum");
+                throw new DeveloperError('The camera frustum is expected to be orthographic for 2D camera control.');
         }
 
         var newRight = frustum.right - moveRate;
@@ -279,7 +279,7 @@ define([
 
        if (frustum.left === null || frustum.right === null ||
            frustum.top === null || frustum.bottom === null) {
-               throw new DeveloperError("The camera frustum is expected to be orthographic for 2D camera control.", "frustum");
+               throw new DeveloperError('The camera frustum is expected to be orthographic for 2D camera control.');
        }
 
        var width = this._canvas.clientWidth;
@@ -359,7 +359,7 @@ define([
     };
 
     /**
-     * Removes mouse and keyboard listeners held by this object.
+     * Removes mouse listeners held by this object.
      * <br /><br />
      * Once an object is destroyed, it should not be used; calling any function other than
      * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,

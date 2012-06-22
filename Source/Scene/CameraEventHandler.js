@@ -37,11 +37,11 @@ define([
      */
     function CameraEventHandler(canvas, moveType, moveModifier) {
         if (!canvas) {
-            throw new DeveloperError("description.canvas is required.", "description.canvas");
+            throw new DeveloperError('description.canvas is required.');
         }
 
         if (!moveType) {
-            throw new DeveloperError("moveType is required.", "moveType");
+            throw new DeveloperError('moveType is required.');
         }
 
         this._eventHandler = new EventHandler(canvas);
@@ -78,7 +78,7 @@ define([
                 this._eventReleaseTimeFunc = this._eventHandler.getRightReleaseTime;
             } else {
                 this._eventHandler = this._eventHandler && this._eventHandler.destroy();
-                throw new DeveloperError("The event type must be of type CameraEventType.", "moveType");
+                throw new DeveloperError('moveType must be of type CameraEventType.');
             }
 
             this._eventHandler.setMouseAction(function(movement) {
@@ -221,7 +221,7 @@ define([
     };
 
     /**
-     * Removes mouse and keyboard listeners held by this object.
+     * Removes mouse listeners held by this object.
      * <br /><br />
      * Once an object is destroyed, it should not be used; calling any function other than
      * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,
