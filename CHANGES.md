@@ -24,21 +24,58 @@ Beta Releases
             var position = scene.pickEllipsoid(windowPosition, ellipsoid);
             
    * `Camera.getPickRay` now returns the new `Ray` type instead of an object with position and direction properties.
-
+   * `CameraSpindleController.mouseConstrainedZAxis` has been removed. Instead, use `CameraSpindleController.constrainedAxis`. Code that previously looked like:
+            
+            spindleController.mouseConstrainedZAxis = true;
+            
+     should now look like:
+     
+            spindleController.constrainedAxis = Cartesian3.UNIT_Z;
+   
+   * The free look feature has been removed from `CameraColumbusViewController` in favor of rotating about the point clicked on the map with the middle mouse button.
+   * The `Camera2DController` constructor and `CameraControllerCollection.add2D` now require a projection instead of an ellipsoid.
+   * JulianDate.getTimeStandard() has been removed, dates are now always stored internally as TAI.
+   * LeapSeconds.setLeapSeconds now takes an array of LeapSecond instances instead of JSON.
+   * TimeStandard.convertUtcToTai and TimeStandard.convertTaiToUtc have been removed as they are no longer needed. 
+   * `Cartesian3.prototype.getXY()` was replaced with `Cartesian2.fromCartesian3`.  Code that previously looked like `cartesian3.getXY();` should now look like `Cartesian2.fromCartesian3(cartesian3);`.
+   * `Cartesian4.prototype.getXY()` was replaced with `Cartesian2.fromCartesian4`.  Code that previously looked like `cartesian4.getXY();` should now look like `Cartesian2.fromCartesian4(cartesian4);`.
+   * `Cartesian4.prototype.getXYZ()` was replaced with `Cartesian3.fromCartesian4`.  Code that previously looked like `cartesian4.getXYZ();` should now look like `Cartesian3.fromCartesian4(cartesian4);`.
+   * `Math.angleBetween` was removed because it was a duplicate of `Cartesian3.angleBetween`.  Simply replace calls of the former to the later.
+   * `Cartographic3` was renamed to `Cartographic`.
+   * `Cartographic2` was removed; use `Cartographic` instead.
+   * `Ellipsoid.toCartesian` was renamed to `Ellipsoid.cartographicToCartesian`.
+   * `Ellipsoid.toCartesians` was renamed to `Ellipsoid.cartographicArrayToCartesianArray`.
+   * `Ellipsoid.toCartographic2` was renamed to `Ellipsoid.cartesianToCartographic`.
+   * `Ellipsoid.toCartographic2s` was renamed to `Ellipsoid.cartesianArrayToCartographicArray`.
+   * `Ellipsoid.toCartographic3` was renamed to `Ellipsoid.cartesianToCartographic`.
+   * `Ellipsoid.toCartographic3s` was renamed to `Ellipsoid.cartesianArrayToCartographicArray`.
+   * `Ellipsoid.cartographicDegreesToCartesian` was removed.  Code that previously looked like `ellipsoid.cartographicDegreesToCartesian(new Cartographic(45, 50, 10))` should now look like `ellipsoid.cartographicToCartesian(Cartographic.fromDegrees(45, 50, 10))`.
+   * `Math.cartographic3ToRadians`, `Math.cartographic2ToRadians`, `Math.cartographic2ToDegrees`, and `Math.cartographic3ToDegrees` were removed.  These functions are no longer needed because Cartographic instances are always represented in radians. 
+   * The `multiplyWithMatrix` function on each `Matrix` type was renamed to `multiply`. 
+   * All functions starting with `multiplyWith` now start with `multiplyBy` to be consistent with functions starting with `divideBy`. 
+* All `Cartesian2` operations now have static versions that work with any objects exposing `x` and `y` properties.
+* All `Cartesian2` operations now have static versions that work with any objects exposing `x`, `y`, and `z` properties.
+* All `Cartesian3` operations now have static versions that work with any objects exposing `x`, `y`, `z` and `w` properties.
+* All `Cartographic` operations now have static versions that work with any objects exposing `longitude`, `latitude`, and `height` properties.
+* Added `Cartographic.fromDegrees` make creating Cartographic instances from values in degrees easier. 
 * Added `addImage` to `TextureAtlas` so images can be added to a texture atlas after it is constructed.
 * Added `Scene.pickEllipsoid`, which picks either the ellipsoid or the map depending on the current `SceneMode`.
 * Added `Event`, a new utility class which makes it easy for objects to expose event properties.
 * Added `TextureAtlasBuilder`,a new utility class which makes it easy to build a TextureAtlas asynchronously.
-* Added 'Clock', a simple clock for keeping track of simulated time.
-* Added 'LagrangePolynomialApproximation', 'HermitePolynomialApproximation', and 'LinearApproximation' interpolation algorithms.
-* Added 'CoordinateConversions', a new static class where most coordinate conversion methods will be stored.
-* Added 'Spherical' coordinate type
+* Added `Clock`, a simple clock for keeping track of simulated time.
+* Added `LagrangePolynomialApproximation`, `HermitePolynomialApproximation`, and `LinearApproximation` interpolation algorithms.
+* Added `CoordinateConversions`, a new static class where most coordinate conversion methods will be stored.
+* Added `Spherical` coordinate type
 * Added a new DynamicScene layer for time-dynamic, data-driven visualization.  This include CZML processing.  For more details see https://github.com/AnalyticalGraphicsInc/cesium/wiki/Architecture and https://github.com/AnalyticalGraphicsInc/cesium/wiki/CZML-in-Cesium.
 * Added a new application, Cesium Viewer, for viewing CZML files and otherwise exploring the globe.
 * Added a new Widgets directory, to contain common re-usable Cesium related controls.
 * Added a new Timeline control to the widgets directory.
 * Added a new DojoWidgets directory, to contain dojo-specific widgets.
 * Added new Timeline and Cesium dojo widgets.
+* Added `CameraCentralBodyController` as the new default controller to handle mouse input.
+    * The left mouse button rotates around the central body.
+    * The right mouse button and mouse wheel zoom in and out.
+    * The middle mouse button rotates around the point clicked on the central body.
 
 ### b6a - 06/20/2012
 

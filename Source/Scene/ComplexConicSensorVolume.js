@@ -1,6 +1,7 @@
 /*global define*/
 define([
         '../Core/DeveloperError',
+        '../Core/Color',
         '../Core/combine',
         '../Core/destroyObject',
         '../Core/FAR',
@@ -25,6 +26,7 @@ define([
         './SceneMode'
     ], function(
         DeveloperError,
+        Color,
         combine,
         destroyObject,
         FAR,
@@ -103,7 +105,7 @@ define([
          * @example
          * // The sensor's vertex is located on the surface at -75.59777 degrees longitude and 40.03883 degrees latitude.
          * // The sensor's cone opens upward, along the surface normal.
-         * var center = ellipsoid.cartographicDegreesToCartesian(new Cartographic2(-75.59777, 40.03883));
+         * var center = ellipsoid.cartographicToCartesian(Cartographic.fromDegrees(-75.59777, 40.03883));
          * sensor.modelMatrix = Transforms.eastNorthUpToFixedFrame(center);
          */
         this.modelMatrix = t.modelMatrix || Matrix4.IDENTITY;
@@ -196,12 +198,7 @@ define([
         /**
          * DOC_TBA
          */
-        this.intersectionColor = t.intersectionColor || {
-            red : 1.0,
-            green : 1.0,
-            blue : 0.0,
-            alpha : 1.0
-        };
+        this.intersectionColor = (typeof t.intersectionColor !== 'undefined') ? Color.clone(t.intersectionColor) : new Color(1.0, 1.0, 0.0, 1.0);
 
         /**
          * DOC_TBA

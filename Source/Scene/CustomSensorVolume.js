@@ -1,6 +1,7 @@
 /*global define*/
 define([
         '../Core/DeveloperError',
+        '../Core/Color',
         '../Core/combine',
         '../Core/destroyObject',
         '../Core/FAR',
@@ -20,6 +21,7 @@ define([
         './SceneMode'
     ], function(
         DeveloperError,
+        Color,
         combine,
         destroyObject,
         FAR,
@@ -110,7 +112,7 @@ define([
          * @example
          * // The sensor's vertex is located on the surface at -75.59777 degrees longitude and 40.03883 degrees latitude.
          * // The sensor's opens upward, along the surface normal.
-         * var center = ellipsoid.cartographicDegreesToCartesian(new Cartographic2(-75.59777, 40.03883));
+         * var center = ellipsoid.cartographicToCartesian(Cartographic.fromDegrees(-75.59777, 40.03883));
          * sensor.modelMatrix = Transforms.eastNorthUpToFixedFrame(center);
          */
         this.modelMatrix = t.modelMatrix || Matrix4.IDENTITY;
@@ -143,12 +145,7 @@ define([
         /**
          * DOC_TBA
          */
-        this.intersectionColor = t.intersectionColor || {
-            red : 1.0,
-            green : 1.0,
-            blue : 0.0,
-            alpha : 1.0
-        };
+        this.intersectionColor = (typeof t.intersectionColor !== 'undefined') ? Color.clone(t.intersectionColor) : new Color(1.0, 1.0, 0.0, 1.0);
 
         /**
          * DOC_TBA
@@ -207,14 +204,6 @@ define([
         return this._directions;
     };
 
-    CustomSensorVolume._toCartesian = function(direction) {
-        var sinTheta = Math.sin(direction.cone);
-        return new Cartesian3(
-                sinTheta * Math.cos(direction.clock),
-                sinTheta * Math.sin(direction.clock),
-                Math.cos(direction.cone));
-    };
-
     CustomSensorVolume._computePositions = function(directions, radius) {
         var length = directions.length;
         var positions = new Float32Array(3 * length);
@@ -222,14 +211,14 @@ define([
 
         for ( var i = length - 2, j = length - 1, k = 0; k < length; i = j++, j = k++) {
             // PERFORMANCE_IDEA:  We can avoid redundant operations for adjacent edges.
-            var n0 = CustomSensorVolume._toCartesian(directions[i]);
-            var n1 = CustomSensorVolume._toCartesian(directions[j]);
-            var n2 = CustomSensorVolume._toCartesian(directions[k]);
+            var n0 = Cartesian3.fromSpherical(directions[i]);
+            var n1 = Cartesian3.fromSpherical(directions[j]);
+            var n2 = Cartesian3.fromSpherical(directions[k]);
 
             // Extend position so the volume encompasses the sensor's radius.
-            var theta = Math.max(CesiumMath.angleBetween(n0, n1), CesiumMath.angleBetween(n1, n2));
+            var theta = Math.max(Cartesian3.angleBetween(n0, n1), Cartesian3.angleBetween(n1, n2));
             var distance = r / Math.cos(theta * 0.5);
-            var p = n1.multiplyWithScalar(distance);
+            var p = n1.multiplyByScalar(distance);
 
             positions[(j * 3) + 0] = p.x;
             positions[(j * 3) + 1] = p.y;

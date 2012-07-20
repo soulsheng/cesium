@@ -2,6 +2,7 @@
 define([
         '../Core/DeveloperError',
         '../Core/shallowEquals',
+        '../Core/Color',
         '../Core/Cartesian2',
         '../Core/Cartesian3',
         '../Core/Cartesian4',
@@ -10,6 +11,7 @@ define([
     ], function(
         DeveloperError,
         shallowEquals,
+        Color,
         Cartesian2,
         Cartesian3,
         Cartesian4,
@@ -46,13 +48,6 @@ define([
      */
     var Billboard = function(billboardTemplate, collection) {
         var b = billboardTemplate || {};
-        var color = b.color || {
-            red : 1.0,
-            green : 1.0,
-            blue : 1.0,
-            alpha : 1.0
-        };
-
         var position = b.position ? new Cartesian3(b.position.x, b.position.y, b.position.z) : Cartesian3.ZERO.clone();
 
         this._show = (typeof b.show === 'undefined') ? true : b.show;
@@ -64,15 +59,9 @@ define([
         this._verticalOrigin = b.verticalOrigin || VerticalOrigin.CENTER;
         this._scale = (typeof b.scale === 'undefined') ? 1.0 : b.scale;
         this._imageIndex = b.imageIndex || 0;
-        this._color = {
-            red : color.red,
-            green : color.green,
-            blue : color.blue,
-            alpha : color.alpha
-        };
+        this._color = (typeof b.color !== 'undefined') ? Color.clone(b.color) : new Color(1.0, 1.0, 1.0, 1.0);
         this._pickId = undefined;
         this._pickIdThis = b._pickIdThis;
-
         this._collection = collection;
         this._dirty = false;
     };
@@ -522,13 +511,8 @@ define([
     Billboard.prototype.setColor = function(value) {
         var c = this._color;
 
-        if ((typeof value !== 'undefined') &&
-            ((c.red !== value.red) || (c.green !== value.green) || (c.blue !== value.blue) || (c.alpha !== value.alpha))) {
-
-            c.red = value.red;
-            c.green = value.green;
-            c.blue = value.blue;
-            c.alpha = value.alpha;
+        if ((typeof value !== 'undefined') && !Color.equals(c, value)) {
+            Color.clone(value, c);
             this._makeDirty(COLOR_INDEX);
         }
     };
@@ -537,8 +521,8 @@ define([
         // This function is basically a stripped-down JavaScript version of BillboardCollectionVS.glsl
 
         // Model to eye coordinates
-        var mv = uniformState.getView().multiplyWithMatrix(modelMatrix);
-        var positionEC = mv.multiplyWithVector(new Cartesian4(position.x, position.y, position.z, 1.0));
+        var mv = uniformState.getView().multiply(modelMatrix);
+        var positionEC = mv.multiplyByVector(new Cartesian4(position.x, position.y, position.z, 1.0));
 
         // Apply eye offset, e.g., agi_eyeOffset
         var zEyeOffset = eyeOffset.multiplyComponents(positionEC.normalize());
@@ -547,14 +531,14 @@ define([
         positionEC.z += zEyeOffset.z;
 
         // Eye to window coordinates, e.g., agi_eyeToWindowCoordinates
-        var q = uniformState.getProjection().multiplyWithVector(positionEC); // clip coordinates
+        var q = uniformState.getProjection().multiplyByVector(positionEC); // clip coordinates
         q.x /= q.w; // normalized device coordinates
         q.y /= q.w;
         q.z /= q.w;
-        var positionWC = uniformState.getViewportTransformation().multiplyWithVector(new Cartesian4(q.x, q.y, q.z, 1.0)); // window coordinates
+        var positionWC = uniformState.getViewportTransformation().multiplyByVector(new Cartesian4(q.x, q.y, q.z, 1.0)); // window coordinates
 
         // Apply pixel offset
-        var po = pixelOffset.multiplyWithScalar(uniformState.getHighResolutionSnapScale());
+        var po = pixelOffset.multiplyByScalar(uniformState.getHighResolutionSnapScale());
         positionWC.x += po.x;
         positionWC.y += po.y;
 
