@@ -22,8 +22,136 @@ require({
 
     var terrainProvider = new Cesium.ArcGisImageServerTerrainProvider({
         url : 'http://elevation.arcgisonline.com/ArcGIS/rest/services/WorldElevation/DTMEllipsoidal/ImageServer',
-        token : 'lowV5Zc2LPiP2LWw_Z12TbCGKtq7vBTFveTYR5z8lljGnqEURaBcKpk2BKjUlgRyHGGoetE24cEk4wL2ymwk1Q..',
+        token : 'b_Fuz3aqYM9W6T_FcJEtgqeTsPx-hKKahTeu82QK5RWLcBZFwo-M7vAvJB4Bgkjp9by2_B1SLAXfwIdyAA-dtA..',
         proxy : new Cesium.DefaultProxy('/terrain/')
+    });
+
+    var tilingScheme = new Cesium.WebMercatorTilingScheme();
+    var x = 22370;
+    var y = 51108;
+    var tile = new Cesium.Tile({x: x, y: y, level: 17, tilingScheme: tilingScheme});
+    Cesium.when(terrainProvider.requestTileGeometry(tile), function() {
+        var image = tile.geometry;
+        var pixels = Cesium.getImagePixels(image);
+        var vertices = new Float32Array(image.width * image.height * 3);
+
+        var southwest = tilingScheme.cartographicToWebMercator(tile.extent.west, tile.extent.south);
+        var northeast = tilingScheme.cartographicToWebMercator(tile.extent.east, tile.extent.north);
+        var webMercatorExtent = {
+                west : southwest.x,
+                south : southwest.y,
+                east : northeast.x,
+                north : northeast.y
+        };
+
+        Cesium.HeightmapTessellator.computeVertices({
+            heightmap: pixels,
+            heightScale: 1000.0,
+            heightOffset: 1000.0,
+            bytesPerHeight: 3,
+            strideBytes: 4,
+            width: image.width,
+            height: image.height,
+            extent: webMercatorExtent,
+            generateTextureCoordinates: false,
+            relativeToCenter: new Cesium.Cartesian3(0.0, 0.0, 0.0),
+            vertices: vertices,
+            radiiSquared: ellipsoid.getRadiiSquared(),
+            oneOverCentralBodySemimajorAxis: ellipsoid.getOneOverRadii().x
+        });
+        var northwestCornerX = image.width * x;
+        var northwestCornerY = image.height * y;
+        for (var level = 16; level >= 0; --level) {
+            x /= 2;
+            y /= 2;
+            tile = new Cesium.Tile({x: x | 0, y: y | 0, level: level, tilingScheme: tilingScheme});
+            (function(tile, x, y, level) {
+                Cesium.when(terrainProvider.requestTileGeometry(tile), function() {
+                    if (tile.state === Cesium.TileState.UNLOADED) {
+                        return;
+                    }
+
+                    var parentImage = tile.geometry;
+                    var parentPixels = Cesium.getImagePixels(parentImage);
+                    var parentVertices = new Float32Array(parentImage.width * parentImage.height * 3);
+
+                    southwest = tilingScheme.cartographicToWebMercator(tile.extent.west, tile.extent.south);
+                    northeast = tilingScheme.cartographicToWebMercator(tile.extent.east, tile.extent.north);
+                    webMercatorExtent = {
+                            west : southwest.x,
+                            south : southwest.y,
+                            east : northeast.x,
+                            north : northeast.y
+                    };
+
+                    Cesium.HeightmapTessellator.computeVertices({
+                        heightmap: parentPixels,
+                        heightScale: 1000.0,
+                        heightOffset: 1000.0,
+                        bytesPerHeight: 3,
+                        strideBytes: 4,
+                        width: parentImage.width,
+                        height: parentImage.height,
+                        extent: webMercatorExtent,
+                        generateTextureCoordinates: false,
+                        relativeToCenter: new Cesium.Cartesian3(0.0, 0.0, 0.0),
+                        vertices: parentVertices,
+                        radiiSquared: ellipsoid.getRadiiSquared(),
+                        oneOverCentralBodySemimajorAxis: ellipsoid.getOneOverRadii().x
+                    });
+
+                    var parentNorthwestCornerX = parentImage.width * (x | 0);
+                    var parentNorthwestCornerY = parentImage.height * (y | 0);
+
+                    var maxDifference = 0.0;
+                    var minDifference = 1e30;
+                    var sum = 0.0;
+                    var sumOfSquares = 0.0;
+
+                    for (var v = 0; v < image.height; ++v) {
+                        for (var h = 0; h < image.width; ++h) {
+                            var positionIndex = (v * image.width + h) * 3;
+                            var position = new Cesium.Cartesian3(vertices[positionIndex], vertices[positionIndex + 1], vertices[positionIndex + 2]);
+
+                            var parentVFraction = (northwestCornerY + v) / (1 << (17 - level)) - parentNorthwestCornerY;
+                            var parentV = parentVFraction | 0;
+                            parentVFraction -= parentV;
+
+                            if (parentV >= parentImage.height) throw new Cesium.DeveloperError();
+
+                            var parentHFraction = (northwestCornerX + h) / (1 << (17 - level)) - parentNorthwestCornerX;
+                            var parentH = parentHFraction | 0;
+                            parentHFraction -= parentH;
+
+                            if (parentH >= parentImage.width) throw new Cesium.DeveloperError();
+
+                            var parentPositionIndex = (parentV * parentImage.width + parentH) * 3;
+                            var parentPositionNW = new Cesium.Cartesian3(parentVertices[parentPositionIndex], parentVertices[parentPositionIndex + 1], parentVertices[parentPositionIndex + 2]);
+                            var parentPositionNE = new Cesium.Cartesian3(parentVertices[parentPositionIndex + 3], parentVertices[parentPositionIndex + 4], parentVertices[parentPositionIndex + 5]);
+
+                            parentPositionIndex += parentImage.width * 3;
+                            var parentPositionSW = new Cesium.Cartesian3(parentVertices[parentPositionIndex], parentVertices[parentPositionIndex + 1], parentVertices[parentPositionIndex + 2]);
+                            var parentPositionSE = new Cesium.Cartesian3(parentVertices[parentPositionIndex + 3], parentVertices[parentPositionIndex + 4], parentVertices[parentPositionIndex + 5]);
+
+                            var parentPositionNorth = parentPositionNW.multiplyByScalar(1.0 - parentHFraction).add(parentPositionNE.multiplyByScalar(parentHFraction));
+                            var parentPositionSouth = parentPositionSW.multiplyByScalar(1.0 - parentHFraction).add(parentPositionSE.multiplyByScalar(parentHFraction));
+
+                            var parentPosition = parentPositionNorth.multiplyByScalar(1.0 - parentVFraction).add(parentPositionSouth.multiplyByScalar(parentVFraction));
+
+                            var difference = parentPosition.subtract(position).magnitude();
+                            sum += difference;
+                            sumOfSquares += difference * difference;
+                            maxDifference = Math.max(difference, maxDifference);
+                            minDifference = Math.min(difference, minDifference);
+                        }
+                    }
+
+                    var average = sum / (image.width * image.height);
+                    var rms = Math.sqrt(sumOfSquares / (image.width * image.height));
+                    console.log('Level: ' + level + ' Max error: ' + maxDifference + ' Min error ' + minDifference + " Average error: " + average + " RMS error: " + rms);
+                });
+            })(tile, x, y, level);
+        }
     });
 
     var imageryLayerCollection = new Cesium.ImageryLayerCollection();

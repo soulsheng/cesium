@@ -176,6 +176,10 @@ define([
     // intensive, though, which is why we probably won't want to do it while waiting for the
     // actual data to load.  We could also potentially add fractal detail when subdividing.
 
+    //var tileSizes = [16, 16, 16, 16, 16, 16, 16, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 64, 64, 64, 64, 128, 256]
+    //var tileSizes = [64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64]
+    var tileSizes = [256];
+
     /**
      * Request the tile geometry from the remote server.  Once complete, the
      * tile state should be set to RECEIVED.  Alternatively, tile state can be set to
@@ -185,10 +189,10 @@ define([
      * @param {Tile} The tile to request geometry for.
      */
     ArcGisImageServerTerrainProvider.prototype.requestTileGeometry = function(tile) {
-        if (requestsInFlight > 6) {
-            tile.state = TileState.UNLOADED;
-            return;
-        }
+//        if (requestsInFlight > 6) {
+//            tile.state = TileState.UNLOADED;
+//            return;
+//        }
 
         ++requestsInFlight;
 
@@ -197,9 +201,14 @@ define([
             console.log('requesting: ' + requesting);
         }
 
+        var tileSize = tileSizes[tile.level];
+        if (typeof tileSize === 'undefined') {
+            tileSize = tileSizes[tileSizes.length - 1];
+        }
+
         var extent = this.tilingScheme.tileXYToExtent(tile.x, tile.y, tile.level);
         var bbox = CesiumMath.toDegrees(extent.west) + '%2C' + CesiumMath.toDegrees(extent.south) + '%2C' + CesiumMath.toDegrees(extent.east) + '%2C' + CesiumMath.toDegrees(extent.north);
-        var url = this.url + '/exportImage?format=tiff&f=image&size=128%2C128&bboxSR=4326&imageSR=3857&bbox=' + bbox;
+        var url = this.url + '/exportImage?format=tiff&f=image&size=' + tileSize + '%2C' + tileSize + '&bboxSR=4326&imageSR=3857&bbox=' + bbox;
         if (this.token) {
             url += '&token=' + this.token;
         }
