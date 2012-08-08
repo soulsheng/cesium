@@ -1,12 +1,10 @@
 /*global define*/
 define([
         '../Core/Math',
-        '../Core/Cartesian2',
-        '../Core/JulianDate'
+        '../Core/Cartesian2'
     ], function(
         CesiumMath,
-        Cartesian2,
-        JulianDate) {
+        Cartesian2) {
     "use strict";
 
     function move(camera, direction, rate) {
@@ -86,27 +84,21 @@ define([
      * This function is similar to maintainInertia except that it does not require a handler.
      * Instead, the touch start time, touch release time, and last movement are passed as arguments.
      *
-     * @param {JulianDate} lastMovementStartTime The starting time of the movement to create inertia for.
-     * @param {JulianDate} lastMovementEndTime The ending time of the movement to create inertia for.
-     * @param {Object} lastMovement The movement to create inertia for
+     * @param {Number} touchStartTime The starting time of the movement to create inertia for in milliseconds since 1970/01/01.
+     * @param {Number} touchReleaseTime The ending time of the movement to create inertia for in milliseconds since 1970/01/01.
+     * @param {Object} lastMovement The movement to create inertia for.
      * @param {Number} decayCoefficient
      * @param {Function} action
      * @param {Object} object
      * @param {String} lastMovementName
      */
-    function createInertia(touchStarted, touchReleased, lastMovement, decayCoefficient, action, object, lastMovementName) {
-        if(touchStarted && touchReleased) {
-            touchStarted = new JulianDate(touchStarted._julianDayNumber, touchStarted._secondsOfDay, touchStarted._timeStandard);
-            touchReleased = new JulianDate(touchReleased._julianDayNumber, touchReleased._secondsOfDay, touchReleased._timeStandard);
-        }
-        var threshold = touchStarted && touchReleased && touchStarted.getSecondsDifference(touchReleased);
-        if (touchStarted && touchReleased && threshold < inertiaMaxClickTimeThreshold) {
-            var now = new JulianDate();
-            var fromNow = touchReleased.getSecondsDifference(now);
-            if (fromNow > inertiaMaxTimeThreshold) {
-                return;
-            }
-
+    function createInertia(touchStartTime, touchReleaseTime, lastMovement, decayCoefficient, action, object, lastMovementName) {
+        var ts = touchStartTime;
+        var tr = touchReleaseTime;
+        var threshold = ts && tr && ((tr - ts) / 1000.0);
+        var now = new Date();
+        var fromNow = tr && ((now.getTime() - tr) / 1000.0);
+        if (ts && tr && threshold < inertiaMaxClickTimeThreshold && fromNow <= inertiaMaxTimeThreshold) {
             var d = decay(fromNow, decayCoefficient);
 
             if (!object[lastMovementName]) {
