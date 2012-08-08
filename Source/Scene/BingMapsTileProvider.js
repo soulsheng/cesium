@@ -88,7 +88,7 @@ define([
     /**
      * Uses the Bing Map imagery API to load images for tiles.
      *
-     * @name BingMapsTileProvider
+     * @alias BingMapsTileProvider
      * @constructor
      *
      * @param {String} description.server The name of the Bing Maps server hosting the imagery.
@@ -113,7 +113,7 @@ define([
      *     mapStyle : BingMapsStyle.AERIAL
      * });
      */
-    function BingMapsTileProvider(description) {
+    var BingMapsTileProvider = function(description) {
         var desc = description || {};
         var key = desc.key || 'AquXz3981-1ND5jGs8qQn7R7YUP8qkWi77yZSVM7o3nIvzb-Mg0W2Ta57xuUyywX';
         var mapStyle = desc.mapStyle || BingMapsStyle.AERIAL;
@@ -200,7 +200,7 @@ define([
         this._url = undefined;
         this._deferredQueue = [];
         this._requestTemplate();
-    }
+    };
 
     //for a given tile, if we have an element with the same tile in the queue, return the element.
     function findInDeferredQueue(deferredQueue, tile) {
@@ -283,7 +283,10 @@ define([
 
     BingMapsTileProvider.prototype._requestTemplate = function() {
         var that = this;
-        jsonp(this._getMetadataUrl(), function(data) {
+        jsonp(this._getMetadataUrl(), {
+            callbackParameterName : 'jsonp',
+            proxy: this._proxy
+        }).then(function(data) {
             var resource = data.resourceSets[0].resources[0];
 
             var url = resource.imageUrl;
@@ -300,9 +303,6 @@ define([
                 that._loadImage(element);
             });
             that._deferredQueue = [];
-        }, {
-            callbackParameterName : 'jsonp',
-            proxy: this._proxy
         });
     };
 
@@ -384,7 +384,14 @@ define([
         var validZoom = false;
         var loaded = false;
 
-        jsonp(this._getMetadataUrl(), function(data) {
+        jsonp(this._getMetadataUrl(), {
+            parameters : {
+                centerPoint : lat + ',' + lon,
+                zoomLevel : tile.zoom
+            },
+            callbackParameterName : 'jsonp',
+            proxy : this._proxy
+        }).then(function(data) {
             if (typeof data.resourceSets[0] === 'undefined') {
                 if (typeof element.onerror === 'function') {
                     element.onerror();
@@ -403,13 +410,6 @@ define([
             }
 
             zoomResponse = true;
-        }, {
-            parameters : {
-                centerPoint : lat + ',' + lon,
-                zoomLevel : tile.zoom
-            },
-            callbackParameterName : 'jsonp',
-            proxy : this._proxy
         });
 
         var image = element.image;

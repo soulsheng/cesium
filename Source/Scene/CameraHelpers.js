@@ -11,7 +11,7 @@ define([
 
     function move(camera, direction, rate) {
         var position = camera.position;
-        var newPosition = position.add(direction.multiplyWithScalar(rate));
+        var newPosition = position.add(direction.multiplyByScalar(rate));
         camera.position = newPosition;
     }
 
@@ -35,18 +35,14 @@ define([
     var inertiaMaxClickTimeThreshold = 0.4;
     var inertiaMaxTimeThreshold = 2.0;
 
-    function maintainInertia(handler, decayCoefficient, action, object, lastMovementName) {
-        var touchStarted = handler.getButtonPressTime();
-        var touchReleased = handler.getButtonReleaseTime();
-        var threshold = touchStarted && touchReleased && touchStarted.getSecondsDifference(touchReleased);
-        if (touchStarted && touchReleased && threshold < inertiaMaxClickTimeThreshold) {
-            var now = new JulianDate();
-            var fromNow = touchReleased.getSecondsDifference(now);
-            if (fromNow > inertiaMaxTimeThreshold) {
-                return;
-            }
-
-            var d = decay(fromNow, decayCoefficient);
+    function maintainInertia(handler, decayCoef, action, object, lastMovementName) {
+        var ts = handler.getButtonPressTime();
+        var tr = handler.getButtonReleaseTime();
+        var threshold = ts && tr && ((tr.getTime() - ts.getTime()) / 1000.0);
+        var now = new Date();
+        var fromNow = tr && ((now.getTime() - tr.getTime()) / 1000.0);
+        if (ts && tr && threshold < inertiaMaxClickTimeThreshold && fromNow <= inertiaMaxTimeThreshold) {
+            var d = decay(fromNow, decayCoef);
 
             if (!object[lastMovementName]) {
                 var lastMovement = handler.getLastMovement();
@@ -81,6 +77,8 @@ define([
             if (!handler.isButtonDown()) {
                 action.apply(object, [object[lastMovementName]]);
             }
+        } else {
+            object[lastMovementName] = undefined;
         }
     }
 
@@ -144,10 +142,11 @@ define([
         }
     }
 
+    var maxHeight = 20.0;
+
     function handleZoom(object, movement, distanceMeasure) {
         // distanceMeasure should be the height above the ellipsoid.
-        // The zoomRate slows as it approaches the surface and stops 20m above it.
-        var maxHeight = 20.0;
+        // The zoomRate slows as it approaches the surface and stops maxHeight above it.
         var zoomRate = object._zoomFactor * (distanceMeasure - maxHeight);
 
         if (zoomRate > object._maximumZoomRate) {
@@ -166,6 +165,10 @@ define([
             return;
         }
 
+        if (distanceMeasure - dist < maxHeight) {
+            dist = distanceMeasure - maxHeight - 1.0;
+        }
+
         if (dist > 0.0) {
             object.zoomIn(dist);
         } else {
@@ -179,6 +182,7 @@ define([
 
     return {
         move : move,
+        maxHeight : maxHeight,
         handleZoom : handleZoom,
         maintainInertia : maintainInertia,
         createInertia : createInertia,

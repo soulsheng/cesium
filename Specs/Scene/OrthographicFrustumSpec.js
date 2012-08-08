@@ -12,7 +12,7 @@ defineSuite([
          Matrix4,
          CesiumMath) {
     "use strict";
-    /*global it,expect,beforeEach,afterEach*/
+    /*global jasmine,describe,xdescribe,it,xit,expect,beforeEach,afterEach,beforeAll,afterAll,spyOn,runs,waits,waitsFor*/
 
     var frustum, planes;
 
@@ -117,19 +117,13 @@ defineSuite([
 
     it('get orthographic projection matrix', function() {
         var projectionMatrix = frustum.getProjectionMatrix();
-        var expected = Matrix4.createOrthographicOffCenter(frustum.left, frustum.right, frustum.top, frustum.bottm, frustum.near, frustum.far);
-        expect(projectionMatrix.equalsEpsilon(expected, CesiumMath.EPSILON6)).toEqual(true);
+        var expected = Matrix4.computeOrthographicOffCenter(frustum.left, frustum.right, frustum.bottom, frustum.top, frustum.near, frustum.far);
+        expect(projectionMatrix).toEqualEpsilon(expected, CesiumMath.EPSILON6);
     });
 
     it('clone', function() {
         var clone = frustum.clone();
         expect(clone.equals(frustum)).toEqual(true);
-    });
-
-    it('destroys', function() {
-        expect(frustum.isDestroyed()).toEqual(false);
-        frustum.destroy();
-        expect(frustum.isDestroyed()).toEqual(true);
     });
 
     it('throws with null plane(s)', function() {

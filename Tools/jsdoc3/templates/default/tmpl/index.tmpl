@@ -16,9 +16,16 @@
 	<link rel="stylesheet" href="styles/shThemeDefault.css" media="all"></link>
 	<script src="javascript/shCore.js"></script>
 	<script src="javascript/shBrushJScript.js"></script>
+	<script type="text/javascript">
+        var resetFilter = function() {
+            document.filterForm.classFilter.value = '';
+            document.filterForm.submit();
+            return false;
+        }
+    </script>
 </head>
 
-<body onload="document.filterForm.classFilter.focus(); document.filterForm.classFilter.value=((window.location.search).split('='))[1] || document.getElementById('ClassFilter').value; ">
+<body>
 
 <div id="mainIndex">
     
@@ -28,8 +35,8 @@
         <div class="menu">
             
             <div class="rightLinks indexLinks">
-                <a href="http://cesium.agi.com/">demos</a>
-                <a href="https://github.com/AnalyticalGraphicsInc/cesium/wiki">source</a>
+                <a href="http://cesium.agi.com/" target="_blank">demos</a>
+                <a href="https://github.com/AnalyticalGraphicsInc/cesium/wiki" target="_blank">source</a>
             </div>
             <div class="indexLinks">
                 <a id="allLink">all</a>
@@ -37,8 +44,9 @@
                 <a id="glslIndexLink">glsl</a>
             </div>
             <div class="divider"></div>
-            <form name="filterForm" method="get">
+            <form name="filterForm" method="get" onsubmit="return false;">
                 <input type="text" name="classFilter" class="classFilter" id="ClassFilter" placeholder="Filter"></input>
+                <input type="hidden" id="filterType" value="all"/>
             </form>
             <?js= this.nav ?>
         </div>
@@ -55,19 +63,16 @@
 <script type="text/javascript">
 	codeview.classFilter.Init();
 	
-	var searchTerm = ((window.location.search).split('='))[1];
-	if(searchTerm){
-		var numDocLinks = document.links.length;
-		for (i = 0; i < numDocLinks; i++) {
-			var currentLink = document.links[i];
-			var anchorIndex = currentLink.href.indexOf('#');
-			if(anchorIndex !== -1) {
-				currentLink.href = currentLink.href.slice(0, anchorIndex) + "?classFilter=" + searchTerm + currentLink.href.slice(anchorIndex);
-			}
-			else {
-				currentLink.href = currentLink.href + "?classFilter=" + searchTerm;
-			}
-		}
+	var searchTerm = (document.URL.split('='))[1];
+	var show = (document.URL.split('='))[2];
+	
+	if (show) {
+	   document.getElementById("filterType").value = show;
+	} 
+	
+	if (searchTerm) {
+	    searchTerm = searchTerm.split('&')[0] || '';
+	    document.filterForm.classFilter.value = searchTerm;
 	}
 	else {
 		searchTerm="";

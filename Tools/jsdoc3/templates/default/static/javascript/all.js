@@ -506,19 +506,19 @@ codeview.classFilter = ( function() {
 
 		search = search.toLowerCase()
         
-        var numDocLinks = document.links.length;
-        for (i = 3; i < numDocLinks; i++) {
-            var currentLink = document.links[i];
+        var links = document.getElementById("ClassList").getElementsByTagName('a');
+        for (i = 0; i < links.length; i++) {
+            var currentLink = links[i];
             var prefix = ((currentLink.href).split('?'))[0];
             var anchorIndex = currentLink.href.indexOf('#');
             if (search.length === 0) {
                 currentLink.href = prefix;
             }
             else if(anchorIndex !== -1) {
-                currentLink.href = prefix.slice(0, anchorIndex) + "?classFilter=" + search + currentLink.href.slice(anchorIndex);
+                currentLink.href = prefix.slice(0, anchorIndex) + "?classFilter=" + search + "&show=" + document.getElementById("filterType").value + currentLink.href.slice(anchorIndex);
             }
             else {
-                currentLink.href = prefix + "?classFilter=" + search;
+                currentLink.href = prefix + "?classFilter=" + search + "&show=" + document.getElementById("filterType").value;
             }
         }
 

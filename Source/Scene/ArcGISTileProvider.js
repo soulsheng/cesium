@@ -16,7 +16,7 @@ define([
     /**
      * Provides tile images hosted by an ArcGIS Server.
      *
-     * @name ArcGISTileProvider
+     * @alias ArcGISTileProvider
      * @constructor
      *
      * @param {String} description.host The ArcGIS Server host name.
@@ -43,7 +43,7 @@ define([
      *     service : 'World_Street_Map'
      * });
      */
-    function ArcGISTileProvider(description) {
+    var ArcGISTileProvider = function(description) {
         var desc = description || {};
         var instance = desc.instance || 'arcgis/rest';
 
@@ -144,7 +144,12 @@ define([
         this._logoLoaded = false;
 
         var that = this;
-        jsonp(this._url, function(data) {
+        jsonp(this._url, {
+            parameters : {
+                f : 'json'
+            },
+            proxy : this._proxy
+        }).then(function(data) {
             var credit = data.copyrightText;
 
             var canvas = document.createElement('canvas');
@@ -159,13 +164,8 @@ define([
 
             that._logo = canvas;
             that._logoLoaded = true;
-        }, {
-            parameters : {
-                f : 'json'
-            },
-            proxy : this._proxy
         });
-    }
+    };
 
     /**
      * Loads the image for <code>tile</code>.

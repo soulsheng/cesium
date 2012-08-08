@@ -2,21 +2,19 @@
 defineSuite([
          'Scene/CameraControllerCollection',
          'Scene/Camera',
-         'Scene/Camera2DController',
          'Scene/CameraFreeLookController',
-         'Scene/CameraSpindleController',
-         'Core/Cartographic3',
-         'Core/Ellipsoid'
+         'Core/Cartographic',
+         'Core/Ellipsoid',
+         'Core/MercatorProjection'
      ], function(
          CameraControllerCollection,
          Camera,
-         Camera2DController,
          CameraFreeLookController,
-         CameraSpindleController,
-         Cartographic3,
-         Ellipsoid) {
+         Cartographic,
+         Ellipsoid,
+         MercatorProjection) {
     "use strict";
-    /*global document,describe,it,expect,beforeEach,afterEach*/
+    /*global jasmine,describe,xdescribe,it,xit,expect,beforeEach,afterEach,beforeAll,afterAll,spyOn,runs,waits,waitsFor*/
 
     var camera;
     var collection;
@@ -32,7 +30,8 @@ defineSuite([
 
     it('add2D', function() {
         expect(function() {
-            collection.add2D();
+            var mercator = new MercatorProjection();
+            collection.add2D(mercator);
         }).not.toThrow();
         expect(collection.getLength()).toEqual(1);
     });
@@ -61,7 +60,7 @@ defineSuite([
     it('addFlight', function() {
         expect(function() {
             collection.addFlight({
-                destination : Ellipsoid.WGS84.cartographicDegreesToCartesian(new Cartographic3(-118.26, 34.19, 100000.0)), // Los Angeles
+                destination : Ellipsoid.WGS84.cartographicToCartesian(Cartographic.fromDegrees(-118.26, 34.19, 100000.0)), // Los Angeles
                 duration : 4.0
             });
         }).not.toThrow();
@@ -91,8 +90,8 @@ defineSuite([
     });
 
     it('update', function() {
-        collection.add2D();
-        collection.addColumbusView();
+        collection.addSpindle();
+        collection.addFreeLook();
         expect(function() {
             collection.update();
         }).not.toThrow();
@@ -101,7 +100,7 @@ defineSuite([
 
     it('update removes expired controllers', function() {
         var flight = collection.addFlight({
-            destination : Ellipsoid.WGS84.cartographicDegreesToCartesian(new Cartographic3(-118.26, 34.19, 100000.0)), // Los Angeles
+            destination : Ellipsoid.WGS84.cartographicToCartesian(Cartographic.fromDegrees(-118.26, 34.19, 100000.0)), // Los Angeles
             duration : 4.0
         });
         flight._canceled = true;

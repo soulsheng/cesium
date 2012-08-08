@@ -1,35 +1,30 @@
 /*global define*/
-define(['../Shaders/DotMaterial'], function(ShadersDotMaterial) {
+define([
+        '../Core/Color',
+        '../Shaders/DotMaterial'
+       ], function(
+         Color,
+         ShadersDotMaterial) {
     "use strict";
 
     /**
      * DOC_TBA
      *
-     * @name DotMaterial
+     * @alias DotMaterial
      * @constructor
      */
-    function DotMaterial(template) {
+    var DotMaterial = function(template) {
         var t = template || {};
 
         /**
          * DOC_TBA
          */
-        this.lightColor = t.lightColor || {
-            red : 1.0,
-            green : 1.0,
-            blue : 1.0,
-            alpha : 0.5
-        };
+        this.lightColor = (typeof t.lightColor !== 'undefined') ? Color.clone(t.lightColor) : new Color(1.0, 1.0, 1.0, 0.5);
 
         /**
          * DOC_TBA
          */
-        this.darkColor = t.darkColor || {
-            red : 0.0,
-            green : 0.0,
-            blue : 1.0,
-            alpha : 0.5
-        };
+        this.darkColor = (typeof t.darkColor !== 'undefined') ? Color.clone(t.darkColor) : new Color(0.0, 0.0, 1.0, 0.5);
 
         /**
          * DOC_TBA
@@ -60,7 +55,7 @@ define(['../Shaders/DotMaterial'], function(ShadersDotMaterial) {
                 };
             }
         };
-    }
+    };
 
     DotMaterial.prototype._getShaderSource = function() {
         return '#line 0\n' + ShadersDotMaterial;

@@ -19,14 +19,12 @@ define([
      * Handles user input events. Custom functions can be added to be executed on
      * when the user enters input.
      *
-     * @name EventHandler
+     * @alias EventHandler
      *
      * @param {DOC_TBA} element The element to add events to. Defaults to document.
      * @constructor
      */
-    function EventHandler(element) {
-        this._keyEvents = {};
-
+    var EventHandler = function(element) {
         this._mouseEvents = {};
         for ( var button in MouseEventType) {
             if (MouseEventType.hasOwnProperty(button)) {
@@ -34,15 +32,8 @@ define([
             }
         }
 
-        this._modifiedKeyEvents = {};
-        for ( var modifier in EventModifier) {
-            if (EventModifier.hasOwnProperty(modifier)) {
-                this._modifiedKeyEvents[modifier] = {};
-            }
-        }
-
         this._modifiedMouseEvents = {};
-        for (modifier in EventModifier) {
+        for ( var modifier in EventModifier) {
             if (EventModifier.hasOwnProperty(modifier)) {
                 this._modifiedMouseEvents[modifier] = {};
                 for (button in MouseEventType) {
@@ -68,7 +59,7 @@ define([
         this._element = element || document;
 
         this._register();
-    }
+    };
 
     EventHandler.prototype._getPosition = function(event) {
         if (this._element === document) {
@@ -83,253 +74,6 @@ define([
             x : event.clientX - rect.left,
             y : event.clientY - rect.top
         };
-    };
-
-    /**
-     * Returns <code>true</code> if the left mouse button is pressed and <code>false</code> otherwise.
-     *
-     * @memberof EventHandler
-     *
-     * @return {Boolean} <code>true</code> if the left mouse button is pressed and <code>false</code> otherwise.
-     *
-     * @see EventHandler#isMiddleMouseButtonDown
-     * @see EventHandler#isRightMouseButtonDown
-     */
-    EventHandler.prototype.isLeftMouseButtonDown = function() {
-        return this._leftMouseButtonDown;
-    };
-
-    /**
-     * Returns the last time that the left mouse button was pressed.
-     *
-     * @memberof EventHandler
-     *
-     * @return {JulianDate} The time the left mouse button was pressed.
-     *
-     * @see EventHandler#getLeftReleaseTime
-     * @see EventHandler#getRightPressTime
-     * @see EventHandler#getMiddlePressTime
-     */
-    EventHandler.prototype.getLeftPressTime = function() {
-        return this._leftPressTime;
-    };
-
-    /**
-     * Returns the last time that the left mouse button was released.
-     *
-     * @memberof EventHandler
-     *
-     * @return {JulianDate} The time the left mouse button was released.
-     *
-     * @see EventHandler#getLeftPressTime
-     * @see EventHandler#getRightReleaseTime
-     * @see EventHandler#getMiddleReleaseTime
-     */
-    EventHandler.prototype.getLeftReleaseTime = function() {
-        return this._leftReleaseTime;
-    };
-
-    /**
-     * Returns <code>true</code> if the middle mouse button is pressed and <code>false</code> otherwise.
-     *
-     * @memberof EventHandler
-     *
-     * @return {Boolean} <code>true</code> if the middle mouse button is pressed and <code>false</code> otherwise.
-     *
-     * @see EventHandler#isMiddleMouseButtonDown
-     * @see EventHandler#isLeftMouseButtonDown
-     */
-    EventHandler.prototype.isMiddleMouseButtonDown = function() {
-        return this._middleMouseButtonDown;
-    };
-
-    /**
-     * Returns the last time that the middle mouse button was pressed.
-     *
-     * @memberof EventHandler
-     *
-     * @return {JulianDate} The time the middle mouse button was pressed.
-     *
-     * @see EventHandler#getMiddleReleaseTime
-     * @see EventHandler#getRightPressTime
-     * @see EventHandler#getLeftPressTime
-     */
-    EventHandler.prototype.getMiddlePressTime = function() {
-        return this._middlePressTime;
-    };
-
-    /**
-     * Returns the last time that the middle mouse button was released.
-     *
-     * @memberof EventHandler
-     *
-     * @return {JulianDate} The time the middle mouse button was released.
-     *
-     * @see EventHandler#getMiddlePressTime
-     * @see EventHandler#getRightReleaseTime
-     * @see EventHandler#getLeftReleaseTime
-     */
-    EventHandler.prototype.getMiddleReleaseTime = function() {
-        return this._middleReleaseTime;
-    };
-
-    /**
-     * Returns <code>true</code> if the right mouse button is pressed and <code>false</code> otherwise.
-     *
-     * @memberof EventHandler
-     *
-     * @return {Boolean} <code>true</code> if the right mouse button is pressed and <code>false</code> otherwise.
-     *
-     * @see EventHandler#isMiddleMouseButtonDown
-     * @see EventHandler#isLeftMouseButtonDown
-     */
-    EventHandler.prototype.isRightMouseButtonDown = function() {
-        return this._rightMouseButtonDown;
-    };
-
-    /**
-     * Returns the last time that the right mouse button was pressed.
-     *
-     * @memberof EventHandler
-     *
-     * @return {JulianDate} The time the right mouse button was pressed.
-     *
-     * @see EventHandler#getRightReleaseTime
-     * @see EventHandler#getLeftPressTime
-     * @see EventHandler#getMiddlePressTime
-     */
-    EventHandler.prototype.getRightPressTime = function() {
-        return this._rightPressTime;
-    };
-
-    /**
-     * Returns the last time that the right mouse button was released.
-     *
-     * @memberof EventHandler
-     *
-     * @return {JulianDate} The time the right mouse button was released.
-     *
-     * @see EventHandler#getRightPressTime
-     * @see EventHandler#getLeftReleaseTime
-     * @see EventHandler#getMiddleReleaseTime
-     */
-    EventHandler.prototype.getRightReleaseTime = function() {
-        return this._rightReleaseTime;
-    };
-
-    /**
-     * Set a function to be executed when a key is entered.
-     *
-     * @memberof EventHandler
-     *
-     * @param {Function} action Function to be executed when <code>key</code> is pressed.
-     * @param {Character} key The key that is pressed.
-     * @param {Enumeration} modifier A EventModifier key that is held when <code>key</code> is pressed.
-     *
-     * @exception {DeveloperError} action is required.
-     * @exception {DeveloperError} key is required.
-     *
-     * @see EventHandler#getKeyAction
-     * @see EventHandler#removeKeyAction
-     *
-     * @example
-     * // Set the camera to a 'home' position when 'h' is pressed.
-     * customHandler.setKeyAction(
-     *    function() {
-     *        var position = new Cartesian3(2.0 * Ellipsoid.WGS84.getRadii().getMaximumComponent(), 0.0, 0.0);
-     *        var dir = Cartesian3.ZERO.subtract(position).normalize();
-     *        var up = Cartesian3.UNIT_Z;
-     *        camera.position = position;
-     *        camera.direction = dir;
-     *        camera.up = up;
-     *    },
-     *    'h'
-     * );
-     */
-    EventHandler.prototype.setKeyAction = function(action, key, modifier) {
-        if (!action) {
-            throw new DeveloperError('action is required.');
-        }
-
-        if (!key) {
-            throw new DeveloperError('key is required.');
-        }
-
-        var keyEvents;
-        if (modifier && modifier.name) {
-            keyEvents = this._modifiedKeyEvents[modifier.name];
-        } else {
-            keyEvents = this._keyEvents;
-        }
-
-        if (keyEvents) {
-            var ucKey = key.toUpperCase();
-            keyEvents[ucKey] = action;
-        }
-    };
-
-    /**
-     * Returns the function executed when <code>key</code> is pressed.
-     *
-     * @memberof EventHandler
-     *
-     * @param {Character} key The key
-     * @param {Enumeration} The modifier.
-     *
-     * @exception {DeveloperError} key is required.
-     *
-     * @see EventHandler#setKeyAction
-     * @see EventHandler#removeKeyAction
-     */
-    EventHandler.prototype.getKeyAction = function(key, modifier) {
-        if (!key) {
-            throw new DeveloperError('key is required.');
-        }
-
-        var keyEvents;
-        if (modifier && modifier.name) {
-            keyEvents = this._modifiedKeyEvents[modifier.name];
-        } else {
-            keyEvents = this._keyEvents;
-        }
-
-        var ucKey = key.toUpperCase();
-        if (keyEvents && keyEvents[ucKey]) {
-            return keyEvents[ucKey];
-        }
-
-        return null;
-    };
-
-    /**
-     * Removes the function executed when <code>key</code> is pressed.
-     *
-     * @memberof EventHandler
-     *
-     * @param {Character} key The key
-     * @param {Enumeration} The modifier.
-     *
-     * @exception {DeveloperError} key is required.
-     *
-     * @see EventHandler#setKeyAction
-     * @see EventHandler#getKeyAction
-     */
-    EventHandler.prototype.removeKeyAction = function(key, modifier) {
-        if (!key) {
-            throw new DeveloperError('key is required.');
-        }
-
-        var keyEvents;
-        if (modifier && modifier.name) {
-            keyEvents = this._modifiedKeyEvents[modifier.name];
-        } else {
-            keyEvents = this._keyEvents;
-        }
-
-        var ucKey = key.toUpperCase();
-        if (keyEvents && keyEvents[ucKey]) {
-            delete keyEvents[ucKey];
-        }
     };
 
     /**
@@ -399,7 +143,7 @@ define([
             return mouseEvents[type.name];
         }
 
-        return null;
+        return undefined;
     };
 
     /**
@@ -442,7 +186,7 @@ define([
             return EventModifier.ALT;
         }
 
-        return null;
+        return undefined;
     };
 
     EventHandler.prototype._handleMouseDown = function(event) {
@@ -463,15 +207,12 @@ define([
         // constants somewhere?
         if (event.button === 0) {
             this._leftMouseButtonDown = true;
-            this._leftPressTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.LEFT_DOWN, modifier);
         } else if (event.button === 1) {
             this._middleMouseButtonDown = true;
-            this._middlePressTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.MIDDLE_DOWN, modifier);
         } else if (event.button === 2) {
             this._rightMouseButtonDown = true;
-            this._rightPressTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.RIGHT_DOWN, modifier);
         }
 
@@ -496,17 +237,14 @@ define([
         // constants somewhere?
         if (event.button === 0) {
             this._leftMouseButtonDown = false;
-            this._leftReleaseTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.LEFT_UP, modifier);
             clickAction = this.getMouseAction(MouseEventType.LEFT_CLICK, modifier);
         } else if (event.button === 1) {
             this._middleMouseButtonDown = false;
-            this._middleReleaseTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.MIDDLE_UP, modifier);
             clickAction = this.getMouseAction(MouseEventType.MIDDLE_CLICK, modifier);
         } else if (event.button === 2) {
             this._rightMouseButtonDown = false;
-            this._rightReleaseTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.RIGHT_UP, modifier);
             clickAction = this.getMouseAction(MouseEventType.RIGHT_CLICK, modifier);
         }
@@ -574,7 +312,6 @@ define([
             var action;
 
             this._leftMouseButtonDown = true;
-            this._leftPressTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.LEFT_DOWN, modifier);
 
             if (action) {
@@ -596,7 +333,6 @@ define([
 
         if (this._leftMouseButtonDown) {
             this._leftMouseButtonDown = false;
-            this._leftReleaseTime = new JulianDate();
             action = this.getMouseAction(MouseEventType.LEFT_UP, modifier);
             clickAction = this.getMouseAction(MouseEventType.LEFT_CLICK, modifier);
         }
@@ -652,15 +388,6 @@ define([
             if (this._leftMouseButtonDown || this._middleMouseButtonDown || this._rightMouseButtonDown) {
                 event.preventDefault();
             }
-        }
-    };
-
-    EventHandler.prototype._handleKeyDown = function(event) {
-        var modifier = this._getModifier(event);
-        var key = String.fromCharCode(event.keyCode);
-        var action = this.getKeyAction(key, modifier);
-        if (action) {
-            action();
         }
     };
 
@@ -741,13 +468,6 @@ define([
             }
         });
         this._callbacks.push({
-            name : 'keydown',
-            onDoc : false,
-            action : function(e) {
-                that._handleKeyDown(e);
-            }
-        });
-        this._callbacks.push({
             name : 'touchstart',
             onDoc : false,
             action : function(e) {
@@ -823,7 +543,7 @@ define([
     };
 
     /**
-     * Removes mouse and keyboard listeners held by this object.
+     * Removes mouse listeners held by this object.
      * <br /><br />
      * Once an object is destroyed, it should not be used; calling any function other than
      * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,

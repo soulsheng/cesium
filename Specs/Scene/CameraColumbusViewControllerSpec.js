@@ -10,7 +10,7 @@ defineSuite([
          Cartesian3,
          CesiumMath) {
     "use strict";
-    /*global document,describe,it,expect,beforeEach,afterEach*/
+    /*global jasmine,describe,xdescribe,it,xit,expect,beforeEach,afterEach,beforeAll,afterAll,spyOn,runs,waits,waitsFor*/
 
     var controller;
     var camera;
@@ -28,8 +28,8 @@ defineSuite([
         controller = controller && !controller.isDestroyed() && controller.destroy();
     });
 
-    it('updateReferenceFrame', function() {
-        controller._updateReferenceFrame();
+    it('correct position', function() {
+        controller._correctPosition();
         expect(camera.position.equalsEpsilon(Cartesian3.ZERO, CesiumMath.EPSILON10)).toEqual(true);
     });
 

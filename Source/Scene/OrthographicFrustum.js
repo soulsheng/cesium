@@ -19,7 +19,7 @@ define([
      * define the unit vector normal to the plane, and the w component is the distance of the
      * plane from the origin/camera position.
      *
-     * @name OrthographicFrustum
+     * @alias OrthographicFrustum
      * @constructor
      *
      * @example
@@ -33,7 +33,7 @@ define([
      * frustum.near = 0.01 * maxRadii;
      * frustum.far = 50.0 * maxRadii;
      */
-    function OrthographicFrustum() {
+    var OrthographicFrustum = function() {
         /**
          * DOC_TBA
          *
@@ -83,7 +83,7 @@ define([
         this._far = null;
 
         this._orthographicMatrix = null;
-    }
+    };
 
     /**
      * Returns the orthographic projection matrix computed from the view frustum.
@@ -129,7 +129,7 @@ define([
     };
 
     OrthographicFrustum.prototype._updateProjectionMatrices = function() {
-        this._orthographicMatrix = Matrix4.createOrthographicOffCenter(this.left, this.right, this.bottom, this.top, this.near, this.far);
+        this._orthographicMatrix = Matrix4.computeOrthographicOffCenter(this.left, this.right, this.bottom, this.top, this.near, this.far);
     };
 
     /**
@@ -168,29 +168,29 @@ define([
         planes.length = 6;
 
         var planePoint;
-        var nearCenter = pos.add(dir.multiplyWithScalar(this.near));
+        var nearCenter = pos.add(dir.multiplyByScalar(this.near));
 
         // Left plane
-        planePoint = nearCenter.add(right.multiplyWithScalar(this.left));
+        planePoint = nearCenter.add(right.multiplyByScalar(this.left));
         planes[0] = new Cartesian4(right.x, right.y, right.z, -right.dot(planePoint));
 
         // Right plane
-        planePoint = nearCenter.add(right.multiplyWithScalar(this.right));
+        planePoint = nearCenter.add(right.multiplyByScalar(this.right));
         planes[1] = new Cartesian4(-right.x, -right.y, -right.z, -right.negate().dot(planePoint));
 
         // Bottom plane
-        planePoint = nearCenter.add(u.multiplyWithScalar(this.bottom));
+        planePoint = nearCenter.add(u.multiplyByScalar(this.bottom));
         planes[2] = new Cartesian4(u.x, u.y, u.z, -u.dot(planePoint));
 
         // Top plane
-        planePoint = nearCenter.add(u.multiplyWithScalar(this.top));
+        planePoint = nearCenter.add(u.multiplyByScalar(this.top));
         planes[3] = new Cartesian4(-u.x, -u.y, -u.z, -u.negate().dot(planePoint));
 
         // Near plane
         planes[4] = new Cartesian4(direction.x, direction.y, direction.z, -direction.dot(nearCenter));
 
         // Far plane
-        planePoint = position.add(direction.multiplyWithScalar(this.far));
+        planePoint = position.add(direction.multiplyByScalar(this.far));
         planes[5] = new Cartesian4(-direction.x, -direction.y, -direction.z, -direction.negate().dot(planePoint));
 
         return planes;
@@ -226,44 +226,6 @@ define([
                 this.bottom === other.bottom &&
                 this.near === other.near &&
                 this.far === other.far);
-    };
-
-    /**
-     * Returns true if this object was destroyed; otherwise, false.
-     * <br /><br />
-     * If this object was destroyed, it should not be used; calling any function other than
-     * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.
-     *
-     * @memberof OrthographicFrustum
-     *
-     * @return {Boolean} <code>true</code> if this object was destroyed; otherwise, <code>false</code>.
-     *
-     * @see OrthographicFrustum#destroy
-     */
-    OrthographicFrustum.prototype.isDestroyed = function() {
-        return false;
-    };
-
-    /**
-     * Removes keyboard listeners held by this object.
-     * <br /><br />
-     * Once an object is destroyed, it should not be used; calling any function other than
-     * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,
-     * assign the return value (<code>undefined</code>) to the object as done in the example.
-     *
-     * @memberof OrthographicFrustum
-     *
-     * @return {undefined}
-     *
-     * @exception {DeveloperError} This object was destroyed, i.e., destroy() was called.
-     *
-     * @see OrthographicFrustum#isDestroyed
-     *
-     * @example
-     * frustum = frustum && frustum.destroy();
-     */
-    OrthographicFrustum.prototype.destroy = function() {
-        return destroyObject(this);
     };
 
     return OrthographicFrustum;

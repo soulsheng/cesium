@@ -19,7 +19,7 @@ define([
      * except the first and last, are computed using the previous and next control points.
      * Catmull-Rom splines are in the class C<sup>1</sup>.
      *
-     * @name CatmullRomSpline
+     * @alias CatmullRomSpline
      * @constructor
      *
      * @param {Array} controlPoints The array of control points. Each element of the array should be an object with <code>point</code> and <code>time</code> properties.
@@ -44,7 +44,7 @@ define([
      * ];
      * var spline = new CatmullRomSpline(controlPoints);
      */
-    function CatmullRomSpline(controlPoints, firstTangent, lastTangent) {
+    var CatmullRomSpline = function(controlPoints, firstTangent, lastTangent) {
         if (!controlPoints || !(controlPoints instanceof Array) || controlPoints.length < 3) {
             throw new DeveloperError('controlPoints is required and must be an array of objects with point and time properties, with a length of at least 3.');
         }
@@ -60,10 +60,10 @@ define([
             var controlPoint2 = Cartesian3.clone(controlPoints[2].point);
 
             this._ti = controlPoint1
-                           .multiplyWithScalar(2.0)
+                           .multiplyByScalar(2.0)
                            .subtract(controlPoint2)
                            .subtract(controlPoint0)
-                           .multiplyWithScalar(0.5);
+                           .multiplyByScalar(0.5);
         }
 
         if (firstTangent) {
@@ -76,11 +76,11 @@ define([
             var controlPointn2 = Cartesian3.clone(controlPoints[n - 2].point);
 
             this._to = controlPointn0
-                           .subtract(controlPointn1.multiplyWithScalar(2.0))
+                           .subtract(controlPointn1.multiplyByScalar(2.0))
                            .add(controlPointn2)
-                           .multiplyWithScalar(0.5);
+                           .multiplyByScalar(0.5);
         }
-    }
+    };
 
     CatmullRomSpline.catmullRomCoefficientMatrix = new Matrix4(
             -0.5,  1.0, -0.5,  0.0,
@@ -205,25 +205,25 @@ define([
             p0 = this._points[0].point;
             p1 = this._points[1].point;
             p2 = this._ti;
-            p3 = this._points[2].point.subtract(p0).multiplyWithScalar(0.5);
-            coefs = HermiteSpline.hermiteCoefficientMatrix.multiplyWithVector(timeVec);
+            p3 = this._points[2].point.subtract(p0).multiplyByScalar(0.5);
+            coefs = HermiteSpline.hermiteCoefficientMatrix.multiplyByVector(timeVec);
         } else if (i === this._points.length - 2) {
             p0 = this._points[i].point;
             p1 = this._points[i + 1].point;
-            p2 = p1.subtract(this._points[i - 1].point).multiplyWithScalar(0.5);
+            p2 = p1.subtract(this._points[i - 1].point).multiplyByScalar(0.5);
             p3 = this._to;
-            coefs = HermiteSpline.hermiteCoefficientMatrix.multiplyWithVector(timeVec);
+            coefs = HermiteSpline.hermiteCoefficientMatrix.multiplyByVector(timeVec);
         } else {
             p0 = this._points[i - 1].point;
             p1 = this._points[i].point;
             p2 = this._points[i + 1].point;
             p3 = this._points[i + 2].point;
-            coefs = CatmullRomSpline.catmullRomCoefficientMatrix.multiplyWithVector(timeVec);
+            coefs = CatmullRomSpline.catmullRomCoefficientMatrix.multiplyByVector(timeVec);
         }
-        p0 = p0.multiplyWithScalar(coefs.x);
-        p1 = p1.multiplyWithScalar(coefs.y);
-        p2 = p2.multiplyWithScalar(coefs.z);
-        p3 = p3.multiplyWithScalar(coefs.w);
+        p0 = p0.multiplyByScalar(coefs.x);
+        p1 = p1.multiplyByScalar(coefs.y);
+        p2 = p2.multiplyByScalar(coefs.z);
+        p3 = p3.multiplyByScalar(coefs.w);
 
         return p0.add(p1.add(p2.add(p3)));
     };

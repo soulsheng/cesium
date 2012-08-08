@@ -4,7 +4,110 @@ Change Log
 Beta Releases
 -------------
 
-### b6 - TBA
+### b8 - xx/xx/2012
+
+* Breaking changes:
+    * ...
+* ...
+
+### b7 - 08/01/2012
+
+* Breaking changes:
+   * Removed keyboard input handling from `EventHandler`.
+   * `TextureAtlas` takes an object literal in its constructor instead of separate parameters.  Code that previously looked like:
+
+            context.createTextureAtlas(images, pixelFormat, borderWidthInPixels);
+
+      should now look like:
+
+            context.createTextureAtlas({images : images, pixelFormat : pixelFormat, borderWidthInPixels : borderWidthInPixels});
+            
+   * `Camera.pickEllipsoid` returns the picked position in world coordinates and the ellipsoid parameter is optional. Prefer the new `Scene.pickEllipsoid` method. For example, change
+   
+            var position = camera.pickEllipsoid(ellipsoid, windowPosition);
+      to:
+            
+            var position = scene.pickEllipsoid(windowPosition, ellipsoid);
+            
+   * `Camera.getPickRay` now returns the new `Ray` type instead of an object with position and direction properties.
+   * `Camera.viewExtent` now takes an `Extent` argument instead of west, south, east and north arguments. Prefer `Scene.viewExtent` over `Camera.viewExtent`. `Scene.viewExtent` will work in any `SceneMode`. For example, change
+   
+            camera.viewExtent(ellipsoid, west, south, east, north);
+      to:
+      
+            scene.viewExtent(extent, ellipsoid);
+            
+   * `CameraSpindleController.mouseConstrainedZAxis` has been removed. Instead, use `CameraSpindleController.constrainedAxis`. Code that previously looked like:
+            
+            spindleController.mouseConstrainedZAxis = true;
+            
+     should now look like:
+     
+            spindleController.constrainedAxis = Cartesian3.UNIT_Z;
+   
+   * The `Camera2DController` constructor and `CameraControllerCollection.add2D` now require a projection instead of an ellipsoid.
+   * `Chain` has been removed.  `when` is now included as a more complete CommonJS Promises/A implementation.
+   * `Jobs.downloadImage` was replaced with `loadImage` to provide a promise that will asynchronously load an image.
+   * `jsonp` now returns a promise for the requested data, removing the need for a callback parameter.
+   * JulianDate.getTimeStandard() has been removed, dates are now always stored internally as TAI.
+   * LeapSeconds.setLeapSeconds now takes an array of LeapSecond instances instead of JSON.
+   * TimeStandard.convertUtcToTai and TimeStandard.convertTaiToUtc have been removed as they are no longer needed. 
+   * `Cartesian3.prototype.getXY()` was replaced with `Cartesian2.fromCartesian3`.  Code that previously looked like `cartesian3.getXY();` should now look like `Cartesian2.fromCartesian3(cartesian3);`.
+   * `Cartesian4.prototype.getXY()` was replaced with `Cartesian2.fromCartesian4`.  Code that previously looked like `cartesian4.getXY();` should now look like `Cartesian2.fromCartesian4(cartesian4);`.
+   * `Cartesian4.prototype.getXYZ()` was replaced with `Cartesian3.fromCartesian4`.  Code that previously looked like `cartesian4.getXYZ();` should now look like `Cartesian3.fromCartesian4(cartesian4);`.
+   * `Math.angleBetween` was removed because it was a duplicate of `Cartesian3.angleBetween`.  Simply replace calls of the former to the later.
+   * `Cartographic3` was renamed to `Cartographic`.
+   * `Cartographic2` was removed; use `Cartographic` instead.
+   * `Ellipsoid.toCartesian` was renamed to `Ellipsoid.cartographicToCartesian`.
+   * `Ellipsoid.toCartesians` was renamed to `Ellipsoid.cartographicArrayToCartesianArray`.
+   * `Ellipsoid.toCartographic2` was renamed to `Ellipsoid.cartesianToCartographic`.
+   * `Ellipsoid.toCartographic2s` was renamed to `Ellipsoid.cartesianArrayToCartographicArray`.
+   * `Ellipsoid.toCartographic3` was renamed to `Ellipsoid.cartesianToCartographic`.
+   * `Ellipsoid.toCartographic3s` was renamed to `Ellipsoid.cartesianArrayToCartographicArray`.
+   * `Ellipsoid.cartographicDegreesToCartesian` was removed.  Code that previously looked like `ellipsoid.cartographicDegreesToCartesian(new Cartographic(45, 50, 10))` should now look like `ellipsoid.cartographicToCartesian(Cartographic.fromDegrees(45, 50, 10))`.
+   * `Math.cartographic3ToRadians`, `Math.cartographic2ToRadians`, `Math.cartographic2ToDegrees`, and `Math.cartographic3ToDegrees` were removed.  These functions are no longer needed because Cartographic instances are always represented in radians. 
+   * All functions starting with `multiplyWith` now start with `multiplyBy` to be consistent with functions starting with `divideBy`. 
+   * The `multiplyWithMatrix` function on each `Matrix` type was renamed to `multiply`.
+   * All three Matrix classes have been largely re-written for consistency and performance.  The `values` property has been eliminated and Matrices are no longer immutable.  Code that previously looked like `matrix = matrix.setColumn0Row0(12);` now looks like `matrix[Matrix2.COLUMN0ROW0] = 12;`.  Code that previously looked like `matrix.setColumn3(cartesian3);` now looked like `matrix.setColumn(3, cartesian3, matrix)`. 
+   * 'Polyline' is no longer externally creatable. To create a 'Polyline' use the 'PolylineCollection.add' method.
+   
+            Polyline polyline = new Polyline();
+            
+       to
+       
+            PolylineCollection polylineCollection = new PolylineCollection();
+            Polyline polyline = polylineCollection.add();
+            
+* All `Cartesian2` operations now have static versions that work with any objects exposing `x` and `y` properties.
+* All `Cartesian2` operations now have static versions that work with any objects exposing `x`, `y`, and `z` properties.
+* All `Cartesian3` operations now have static versions that work with any objects exposing `x`, `y`, `z` and `w` properties.
+* All `Cartographic` operations now have static versions that work with any objects exposing `longitude`, `latitude`, and `height` properties.
+* All `Matrix` classes are now indexable like arrays.
+* All `Matrix` operations now have static versions of all prototype functions and anywhere we take a Matrix instance as input can now also take an Array or TypedArray.
+* All `Matrix`, `Cartesian`, and `Cartographic` operations now take an optional result parameter for object re-use to reduce memory pressure.
+* Added `Cartographic.fromDegrees` make creating Cartographic instances from values in degrees easier. 
+* Added `addImage` to `TextureAtlas` so images can be added to a texture atlas after it is constructed.
+* Added `Scene.pickEllipsoid`, which picks either the ellipsoid or the map depending on the current `SceneMode`.
+* Added `Event`, a new utility class which makes it easy for objects to expose event properties.
+* Added `TextureAtlasBuilder`,a new utility class which makes it easy to build a TextureAtlas asynchronously.
+* Added `Clock`, a simple clock for keeping track of simulated time.
+* Added `LagrangePolynomialApproximation`, `HermitePolynomialApproximation`, and `LinearApproximation` interpolation algorithms.
+* Added `CoordinateConversions`, a new static class where most coordinate conversion methods will be stored.
+* Added `Spherical` coordinate type
+* Added a new DynamicScene layer for time-dynamic, data-driven visualization.  This include CZML processing.  For more details see https://github.com/AnalyticalGraphicsInc/cesium/wiki/Architecture and https://github.com/AnalyticalGraphicsInc/cesium/wiki/CZML-in-Cesium.
+* Added a new application, Cesium Viewer, for viewing CZML files and otherwise exploring the globe.
+* Added a new Widgets directory, to contain common re-usable Cesium related controls.
+* Added a new Timeline widget to the Widgets directory.
+* Added a new Widgets/Dojo directory, to contain dojo-specific widgets.
+* Added new Timeline and Cesium dojo widgets.
+* Added `CameraCentralBodyController` as the new default controller to handle mouse input.
+    * The left mouse button rotates around the central body.
+    * The right mouse button and mouse wheel zoom in and out.
+    * The middle mouse button rotates around the point clicked on the central body.
+* Added `computeTemeToPseudoFixedMatrix` function to `Transforms`.
+* Added 'PolylineCollection' to manage numerous polylines. 'PolylineCollection' dramatically improves rendering speed when using polylines.
+
+### b6a - 06/20/2012
 
 * Breaking changes:
     * Changed `Tipsify.tipsify` and `Tipsify.calculateACMR` to accept an object literal instead of three separate arguments. Supplying a maximum index and cache size is now optional.
@@ -14,7 +117,7 @@ Beta Releases
 * Added functions to `Camera` to provide position and directions in world coordinates.
 * Added `showThroughEllipsoid` to `CustomSensorVolume` and `RectangularPyramidSensorVolume` to allow sensors to draw through Earth.
 * Added `affectedByLighting` to `CentralBody` and `Polygon` to turn lighting on/off for these objects.
-* 
+
 ### b5 - 05/15/2012
 
 * Breaking changes:

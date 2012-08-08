@@ -3,37 +3,39 @@ define([
         '../Core/DeveloperError',
         '../Core/destroyObject',
         '../Core/Ellipsoid',
-        '../Core/Cartographic3',
+        '../Core/Cartographic',
         './Camera2DController',
         './CameraFlightController',
         './CameraSpindleController',
         './CameraFreeLookController',
-        './CameraColumbusViewController'
+        './CameraColumbusViewController',
+        './CameraCentralBodyController'
     ], function(
         DeveloperError,
         destroyObject,
         Ellipsoid,
-        Cartographic3,
+        Cartographic,
         Camera2DController,
         CameraFlightController,
         CameraSpindleController,
         CameraFreeLookController,
-        CameraColumbusViewController) {
+        CameraColumbusViewController,
+        CameraCentralBodyController) {
     "use strict";
 
     /**
      * DOC_TBA
      *
-     * @name CameraControllerCollection
+     * @alias CameraControllerCollection
      * @internalConstructor
      *
      * @see Camera#getControllers
      */
-    function CameraControllerCollection(camera, canvas) {
+    var CameraControllerCollection = function(camera, canvas) {
         this._controllers = [];
         this._canvas = canvas;
         this._camera = camera;
-    }
+    };
 
     /**
      * DOC_TBA
@@ -45,8 +47,8 @@ define([
      * @see CameraControllerCollection#addSpindle
      * @see CameraControllerCollection#addColumbusView
      */
-    CameraControllerCollection.prototype.add2D = function(ellipsoid) {
-        var twoD = new Camera2DController(this._canvas, this._camera, ellipsoid);
+    CameraControllerCollection.prototype.add2D = function(projection) {
+        var twoD = new Camera2DController(this._canvas, this._camera, projection);
         this._controllers.push(twoD);
         return twoD;
     };
@@ -112,12 +114,18 @@ define([
     CameraControllerCollection.prototype.addFlight = function(template) {
         var t = template || {};
         var ellipsoid = t.ellipsoid || Ellipsoid.WGS84;
-        var destination = t.destination || Ellipsoid.WGS84.cartographicDegreesToCartesian(new Cartographic3(0.0, 0.0, 0.0));
+        var destination = t.destination || ellipsoid.cartographicToCartesian(new Cartographic(0.0, 0.0, 0.0));
         var duration = t.duration || 4.0;
         var complete = template.complete;
 		var flightController = new CameraFlightController(this._canvas, this._camera, ellipsoid, destination, duration, complete);
 		this._controllers.push(flightController);
 		return flightController;
+    };
+
+    CameraControllerCollection.prototype.addCentralBody = function() {
+        var cb = new CameraCentralBodyController(this._canvas, this._camera);
+        this._controllers.push(cb);
+        return cb;
     };
 
     /**

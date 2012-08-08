@@ -5,35 +5,37 @@ define([
         './AxisAlignedBoundingBox',
         './IntersectionTests',
         './Cartesian2',
-        './Cartesian3'
+        './Cartesian3',
+        './Ray'
     ], function(
         DeveloperError,
         Transforms,
         AxisAlignedBoundingBox,
         IntersectionTests,
         Cartesian2,
-        Cartesian3) {
+        Cartesian3,
+        Ray) {
     "use strict";
 
     /**
      * DOC_TBA
-     * @name EllipsoidTangentPlane
+     * @alias EllipsoidTangentPlane
      * @constructor
      *
      * @param {Ellipsoid} ellipsoid
      * @param {Cartesian3} origin
      */
-    function EllipsoidTangentPlane(ellipsoid, origin) {
+    var EllipsoidTangentPlane = function (ellipsoid, origin) {
         var o = Cartesian3.clone(origin);
         var eastNorthUp = Transforms.eastNorthUpToFixedFrame(o, ellipsoid);
 
         this.origin = o;
-        this.xAxis = eastNorthUp.getColumn0().getXYZ();
-        this.yAxis = eastNorthUp.getColumn1().getXYZ();
-        this.normal = eastNorthUp.getColumn2().getXYZ();
+        this.xAxis = Cartesian3.fromCartesian4(eastNorthUp.getColumn(0));
+        this.yAxis = Cartesian3.fromCartesian4(eastNorthUp.getColumn(1));
+        this.normal = Cartesian3.fromCartesian4(eastNorthUp.getColumn(2));
         this.d = -o.dot(o);
         this.ellipsoid = ellipsoid;
-    }
+    };
 
     /**
      * DOC_TBA
@@ -78,7 +80,7 @@ define([
     EllipsoidTangentPlane.prototype.projectPointOntoPlane = function(position) {
         if (position) {
             var pos = Cartesian3.clone(position);
-            var intersectionPoint = IntersectionTests.rayPlane(pos, pos.normalize(), this.normal, this.d);
+            var intersectionPoint = IntersectionTests.rayPlane(new Ray(pos, pos.normalize()), this.normal, this.d);
 
             if (intersectionPoint) {
                 var v = intersectionPoint.subtract(this.origin);
@@ -101,8 +103,8 @@ define([
         var length = positions.length;
         for ( var i = 0; i < length; ++i) {
             var p = this.origin;
-            p = p.add(this.xAxis.multiplyWithScalar(positions[i].x));
-            p = p.add(this.yAxis.multiplyWithScalar(positions[i].y));
+            p = p.add(this.xAxis.multiplyByScalar(positions[i].x));
+            p = p.add(this.yAxis.multiplyByScalar(positions[i].y));
 
             positionsOnEllipsoid.push(this.ellipsoid.scaleToGeocentricSurface(p));
         }

@@ -2,6 +2,7 @@
 define([
         '../Core/DeveloperError',
         '../Core/RuntimeError',
+        '../Core/Color',
         '../Core/combine',
         '../Core/destroyObject',
         '../Core/Math',
@@ -15,7 +16,7 @@ define([
         '../Core/Cartesian2',
         '../Core/Cartesian3',
         '../Core/Cartesian4',
-        '../Core/Cartographic2',
+        '../Core/Cartographic',
         '../Core/Matrix3',
         '../Core/Queue',
         '../Core/ComponentDatatype',
@@ -56,6 +57,7 @@ define([
     ], function(
         DeveloperError,
         RuntimeError,
+        Color,
         combine,
         destroyObject,
         CesiumMath,
@@ -69,7 +71,7 @@ define([
         Cartesian2,
         Cartesian3,
         Cartesian4,
-        Cartographic2,
+        Cartographic,
         Matrix3,
         Queue,
         ComponentDatatype,
@@ -178,14 +180,13 @@ define([
     /**
      * DOC_TBA
      *
-     * @param {Ellipsoid} [ellipsoid=WGS84 Ellipsoid] Determines the size and shape of the central body.
-     *
-     * @name CentralBody
+     * @alias CentralBody
      * @constructor
      *
-     * @exception {DeveloperError} camera is required.
+     * @param {Ellipsoid} [ellipsoid=WGS84 Ellipsoid] Determines the size and shape of the central body.
+     *
      */
-    function CentralBody(ellipsoid) {
+    var CentralBody = function(ellipsoid) {
         ellipsoid = ellipsoid || Ellipsoid.WGS84;
 
         this._ellipsoid = ellipsoid;
@@ -221,23 +222,28 @@ define([
         this._lastFailedTime = undefined;
 
         /**
-         * DOC_TBA
+         * The maximum number of tiles that can fail consecutively before the
+         * central body will stop loading tiles.
          *
          * @type {Number}
+         * @default 3
          */
         this.perTileMaxFailCount = 3;
 
         /**
-         * DOC_TBA
+         * The maximum number of failures allowed for each tile before the
+         * central body will stop loading a failing tile.
          *
          * @type {Number}
+         * @default 30
          */
         this.maxTileFailCount = 30;
 
         /**
-         * DOC_TBA
+         * The number of seconds between attempts to retry a failing tile.
          *
          * @type {Number}
+         * @default 30.0
          */
         this.failedTileRetryTime = 30.0;
 
@@ -274,21 +280,25 @@ define([
         this._drawSouthPole = false;
 
         /**
-         * DOC_TBA
+         * Determines the color of the north pole. If the day tile provider imagery does not
+         * extend over the north pole, it will be filled with this color before applying lighting.
          *
          * @type {Cartesian3}
          */
         this.northPoleColor = new Cartesian3(2.0 / 255.0, 6.0 / 255.0, 18.0 / 255.0);
 
         /**
-         * DOC_TBA
+         * Determines the color of the south pole. If the day tile provider imagery does not
+         * extend over the south pole, it will be filled with this color before applying lighting.
          *
          * @type {Cartesian3}
          */
         this.southPoleColor = new Cartesian3(1.0, 1.0, 1.0);
 
         /**
-         * DOC_TBA
+         * Determines the position of the day tile provider logo. The day tile provider logo
+         * is displayed in the bottom left corner of the viewport. This is used to offset the
+         * position of the logo.
          *
          * @type {Cartesian2}
          */
@@ -303,6 +313,7 @@ define([
          * DOC_TBA
          *
          * @type {Number}
+         * @default 5.0
          */
         this.pixelError3D = 5.0;
 
@@ -310,6 +321,7 @@ define([
          * DOC_TBA
          *
          * @type {Number}
+         * @default 2.0
          */
         this.pixelError2D = 2.0;
 
@@ -317,20 +329,23 @@ define([
          * Determines if the central body will be shown.
          *
          * @type {Boolean}
+         * @default true
          */
         this.show = true;
 
         /**
-         * DOC_TBA
+         * Determines if the ground atmosphere will be shown.
          *
          * @type {Boolean}
+         * @default false
          */
         this.showGroundAtmosphere = false;
 
         /**
-         * DOC_TBA
+         * Determines if the sky atmosphere will be shown.
          *
          * @type {Boolean}
+         * @default false
          */
         this.showSkyAtmosphere = false;
 
@@ -344,6 +359,8 @@ define([
          * <p>
          * The default is <code>true</code>.
          * </p>
+         *
+         * @default true
          */
         this.affectedByLighting = true;
         this._affectedByLighting = true;
@@ -447,6 +464,8 @@ define([
          *
          * @see CentralBody#dayTileProvider
          * @see CentralBody#showNight
+         *
+         * @default true
          */
         this.showDay = true;
         this._showDay = false;
@@ -464,6 +483,8 @@ define([
          * @see CentralBody#nightImageSource
          * @see CentralBody#showDay
          * @see CentralBody#dayNightBlendDelta
+         *
+         * @default true
          *
          * @example
          * cb.showNight = true;
@@ -484,6 +505,8 @@ define([
          * @see CentralBody#cloudsMapSource
          * @see CentralBody#showCloudShadows
          * @see CentralBody#showNight
+         *
+         * @default true
          *
          * @example
          * cb.showClouds = true;
@@ -508,6 +531,8 @@ define([
          * @see CentralBody#cloudsMapSource
          * @see CentralBody#showClouds
          *
+         * @default true
+         *
          * @example
          * cb.showClouds = true;
          * cb.showCloudShadows = true;
@@ -528,6 +553,8 @@ define([
          * @type {Boolean}
          *
          * @see CentralBody#specularMapSource
+         *
+         * @default true
          *
          * @example
          * cb.showSpecular = true;
@@ -552,6 +579,8 @@ define([
          * @see CentralBody#bumpMapSource
          * @see CentralBody#bumpMapNormalZ
          *
+         * @default true
+         *
          * @example
          * cb.showBumps = true;
          * cb.bumpMapSource = 'bump.jpg';
@@ -569,6 +598,8 @@ define([
          *
          * @see CentralBody#showNight
          * @see CentralBody#dayNightBlendDelta
+         *
+         * @default false
          */
         this.showTerminator = false;
         this._showTerminator = false;
@@ -587,6 +618,8 @@ define([
          * @type {Number}
          *
          * @see CentralBody#showBumps
+         *
+         * @default 0.5
          *
          * @example
          * cb.showBumps = true;
@@ -613,9 +646,11 @@ define([
          * @see CentralBody#showNight
          * @see CentralBody#showTerminator
          *
+         * @default 0.05
+         *
          * @example
          * cb.showDay = true;
-         * cb.dayImageSource = 'day.jpg';
+         * cb.dayTileProvider = new Cesium.SingleTileProvider('day.jpg');
          * cb.showNight = true;
          * cb.nightImageSource = 'night.jpg';
          * cb.dayNightBlendDelta = 0.0;  // Sharp transition
@@ -623,9 +658,13 @@ define([
         this.dayNightBlendDelta = 0.05;
 
         /**
-         * DOC_TBA
+         * Changes the intensity of the night texture. A value of 1.0 is the same intensity as night texture.
+         * A value less than 1.0 makes the night texture darker. A value greater than 1.0 makes the night texture
+         * brighter. The default value is 2.0.
          *
          * @type {Number}
+         *
+         * @default 2.0
          */
         this.nightIntensity = 2.0;
 
@@ -634,6 +673,8 @@ define([
          * with 0.0 being 2D or Columbus View and 1.0 being 3D.
          *
          * @type Number
+         *
+         * @default 1.0
          */
         this.morphTime = 1.0;
 
@@ -642,7 +683,7 @@ define([
 
         this._fCameraHeight = undefined;
         this._fCameraHeight2 = undefined;
-        this._outerRadius = ellipsoid.getRadii().multiplyWithScalar(1.025).getMaximumComponent();
+        this._outerRadius = ellipsoid.getRadii().multiplyByScalar(1.025).getMaximumComponent();
 
         // TODO: Do we want to expose any of these atmosphere constants?
         var Kr = 0.0025;
@@ -757,7 +798,7 @@ define([
         // PERFORMANCE_IDEA:  Only combine these if showing the atmosphere.  Maybe this is too much of a micro-optimization.
         // http://jsperf.com/object-property-access-propcount
         this._drawUniforms = combine(uniforms, atmosphereUniforms);
-    }
+    };
 
     /**
      * DOC_TBA
@@ -855,10 +896,23 @@ define([
 
             var frustum = sceneState.camera.frustum;
             var position = sceneState.camera.position;
-            var x = position.x + frustum.left;
-            var y = position.y + frustum.bottom;
-            var w = position.x + frustum.right - x;
-            var h = position.y + frustum.top - y;
+            var up = sceneState.camera.up;
+            var right = sceneState.camera.right;
+
+            var width = frustum.right - frustum.left;
+            var height = frustum.top - frustum.bottom;
+
+            var lowerLeft = position.add(right.multiplyByScalar(frustum.left));
+            lowerLeft = lowerLeft.add(up.multiplyByScalar(frustum.bottom));
+            var upperLeft = lowerLeft.add(up.multiplyByScalar(height));
+            var upperRight = upperLeft.add(right.multiplyByScalar(width));
+            var lowerRight = upperRight.add(up.multiplyByScalar(-height));
+
+            var x = Math.min(lowerLeft.x, lowerRight.x, upperLeft.x, upperRight.x);
+            var y = Math.min(lowerLeft.y, lowerRight.y, upperLeft.y, upperRight.y);
+            var w = Math.max(lowerLeft.x, lowerRight.x, upperLeft.x, upperRight.x) - x;
+            var h = Math.max(lowerLeft.y, lowerRight.y, upperLeft.y, upperRight.y) - y;
+
             var fRect = new Rectangle(x, y, w, h);
 
             return !Rectangle.rectangleRectangleIntersect(bRect, fRect);
@@ -1062,11 +1116,11 @@ define([
                         y : Math.max(Math.ceil(height / gran), 2.0)
                     },
                     onInterpolation : function(time) {
-                        var lonLat = new Cartographic2(
+                        var lonLat = new Cartographic(
                                 CesiumMath.lerp(tile.extent.west, tile.extent.east, time.x),
                                 CesiumMath.lerp(tile.extent.south, tile.extent.north, time.y));
 
-                        var p = ellipsoid.toCartesian(lonLat).subtract(rtc);
+                        var p = ellipsoid.cartographicToCartesian(lonLat).subtract(rtc);
                         vertices.push(p.x, p.y, p.z);
 
                         var u = (lonLat.longitude - tile.extent.west) * lonScalar;
@@ -1120,7 +1174,7 @@ define([
                     return rtc;
                 },
                 u_center2D : function() {
-                    return (projectedRTC) ? projectedRTC.getXY() : Cartesian2.ZERO;
+                    return (projectedRTC) ? Cartesian2.fromCartesian3(projectedRTC) : Cartesian2.ZERO;
                 },
                 u_modifiedModelView : function() {
                     return tile.modelView;
@@ -1142,6 +1196,10 @@ define([
     CentralBody.prototype._createTileDistanceFunction = function(sceneState, width, height) {
         var provider = this._dayTileProvider;
         if (typeof provider === 'undefined') {
+            return undefined;
+        }
+
+        if (sceneState.mode === SceneMode.SCENE2D) {
             return undefined;
         }
 
@@ -1177,6 +1235,10 @@ define([
             return true;
         }
 
+        if (typeof this._minTileDistance === 'undefined') {
+            return false;
+        }
+
         var boundingVolume = this._getTileBoundingSphere(tile, sceneState);
         var cameraPosition = sceneState.camera.getPositionWC();
         var direction = sceneState.camera.getDirectionWC();
@@ -1185,8 +1247,8 @@ define([
         var dmin = this._minTileDistance(tile.zoom, texturePixelError);
 
         var toCenter = boundingVolume.center.subtract(cameraPosition);
-        var toSphere = toCenter.normalize().multiplyWithScalar(toCenter.magnitude() - boundingVolume.radius);
-        var distance = direction.multiplyWithScalar(direction.dot(toSphere)).magnitude();
+        var toSphere = toCenter.normalize().multiplyByScalar(toCenter.magnitude() - boundingVolume.radius);
+        var distance = direction.multiplyByScalar(direction.dot(toSphere)).magnitude();
 
         if (distance > 0.0 && distance < dmin) {
             return true;
@@ -1228,8 +1290,8 @@ define([
             tileHeight = provider.tileHeight;
         }
 
-        var a = projection.project(new Cartographic2(tile.extent.west, tile.extent.north)).getXY();
-        var b = projection.project(new Cartographic2(tile.extent.east, tile.extent.south)).getXY();
+        var a = projection.project(new Cartographic(tile.extent.west, tile.extent.north));
+        var b = projection.project(new Cartographic(tile.extent.east, tile.extent.south));
         var diagonal = a.subtract(b);
         var texelSize = Math.max(diagonal.x, diagonal.y) / Math.max(tileWidth, tileHeight);
         var pixelSize = Math.max(frustum.top - frustum.bottom, frustum.right - frustum.left) / Math.max(viewportWidth, viewportHeight);
@@ -1251,40 +1313,60 @@ define([
 
     CentralBody.prototype._createScissorRectangle = function(description) {
         var quad = description.quad;
+
         var upperLeft = new Cartesian3(quad[0], quad[1], quad[2]);
+        var lowerLeft = new Cartesian3(quad[3], quad[4], quad[5]);
+        var upperRight = new Cartesian3(quad[6], quad[7], quad[8]);
         var lowerRight = new Cartesian3(quad[9], quad[10], quad[11]);
+
         var mvp = description.modelViewProjection;
-        var clip = description.viewportTransformation;
+        var vt = description.viewportTransformation;
 
-        var center = upperLeft.add(lowerRight).multiplyWithScalar(0.5);
-        var centerScreen = mvp.multiplyWithVector(new Cartesian4(center.x, center.y, center.z, 1.0));
-        centerScreen = centerScreen.multiplyWithScalar(1.0 / centerScreen.w);
-        var centerClip = clip.multiplyWithVector(centerScreen).getXYZ();
+        var diag1 = upperRight.subtract(lowerLeft);
+        var diag2 = upperLeft.subtract(lowerRight);
 
-        var surfaceScreen = mvp.multiplyWithVector(new Cartesian4(upperLeft.x, upperLeft.y, upperLeft.z, 1.0));
-        surfaceScreen = surfaceScreen.multiplyWithScalar(1.0 / surfaceScreen.w);
-        var surfaceClip = clip.multiplyWithVector(surfaceScreen).getXYZ();
+        var diag1Length = diag1.magnitude();
+        var diag2Length = diag2.magnitude();
 
-        var radius = Math.ceil(surfaceClip.subtract(centerClip).magnitude());
-        var diameter = 2.0 * radius;
+        var halfWidth = Math.max(diag1Length, diag2Length) * 0.5;
+        var halfHeight = halfWidth;
 
-        return {
-            x : Math.floor(centerClip.x) - radius,
-            y : Math.floor(centerClip.y) - radius,
-            width : diameter,
-            height : diameter
-        };
+        var center = lowerLeft.add(diag1.normalize().multiplyByScalar(diag1Length * 0.5));
+
+        var camera = description.sceneState.camera;
+        var nearCenter = camera.position.add(camera.direction.multiplyByScalar(camera.frustum.near));
+
+        if (camera.direction.dot(center.subtract(nearCenter)) < 0) {
+            center = center.subtract(nearCenter);
+            var centerProjN = camera.direction.multiplyByScalar(camera.direction.dot(center));
+            var centerRejN = center.subtract(centerProjN);
+            center = nearCenter.add(centerRejN);
+        }
+
+        lowerLeft = center.add(camera.up.multiplyByScalar(-halfHeight)).add(camera.right.multiplyByScalar(-halfWidth));
+        lowerLeft = Transforms.pointToWindowCoordinates(mvp, vt, lowerLeft);
+        upperRight = center.add(camera.up.multiplyByScalar(halfHeight)).add(camera.right.multiplyByScalar(halfWidth));
+        upperRight = Transforms.pointToWindowCoordinates(mvp, vt, upperRight);
+
+        lowerLeft.x = Math.max(0.0, Math.min(lowerLeft.x, description.width));
+        lowerLeft.y = Math.max(0.0, Math.min(lowerLeft.y, description.height));
+        upperRight.x = Math.max(0.0, Math.min(upperRight.x, description.width));
+        upperRight.y = Math.max(0.0, Math.min(upperRight.y, description.height));
+
+        var x = Math.floor(lowerLeft.x);
+        var y = Math.floor(lowerLeft.y);
+        var width = Math.ceil(upperRight.x) - x;
+        var height = Math.ceil(upperRight.y) - y;
+
+        return new Rectangle(x, y, width, height);
     };
 
     CentralBody.prototype._computeDepthQuad = function(sceneState) {
-        // PERFORMANCE_TODO: optimize diagonal matrix multiplies.
-        var dInverse = Matrix3.createNonUniformScale(this._ellipsoid.getRadii());
-        var d = Matrix3.createNonUniformScale(this._ellipsoid.getOneOverRadii());
-
+        var radii = this._ellipsoid.getRadii();
         var p = sceneState.camera.getPositionWC();
 
         // Find the corresponding position in the scaled space of the ellipsoid.
-        var q = d.multiplyWithVector(p);
+        var q = this._ellipsoid.getOneOverRadii().multiplyComponents(p);
 
         var qMagnitude = q.magnitude();
         var qUnit = q.normalize();
@@ -1297,25 +1379,25 @@ define([
         var wMagnitude = Math.sqrt(q.magnitudeSquared() - 1.0);
 
         // Compute the center and offsets.
-        var center = qUnit.multiplyWithScalar(1.0 / qMagnitude);
+        var center = qUnit.multiplyByScalar(1.0 / qMagnitude);
         var scalar = wMagnitude / qMagnitude;
-        var eastOffset = eUnit.multiplyWithScalar(scalar);
-        var northOffset = nUnit.multiplyWithScalar(scalar);
+        var eastOffset = eUnit.multiplyByScalar(scalar);
+        var northOffset = nUnit.multiplyByScalar(scalar);
 
         // A conservative measure for the longitudes would be to use the min/max longitudes of the bounding frustum.
-        var upperLeft = dInverse.multiplyWithVector(center.add(northOffset).subtract(eastOffset));
-        var upperRight = dInverse.multiplyWithVector(center.add(northOffset).add(eastOffset));
-        var lowerLeft = dInverse.multiplyWithVector(center.subtract(northOffset).subtract(eastOffset));
-        var lowerRight = dInverse.multiplyWithVector(center.subtract(northOffset).add(eastOffset));
+        var upperLeft = radii.multiplyComponents(center.add(northOffset).subtract(eastOffset));
+        var upperRight = radii.multiplyComponents(center.add(northOffset).add(eastOffset));
+        var lowerLeft = radii.multiplyComponents(center.subtract(northOffset).subtract(eastOffset));
+        var lowerRight = radii.multiplyComponents(center.subtract(northOffset).add(eastOffset));
         return [upperLeft.x, upperLeft.y, upperLeft.z, lowerLeft.x, lowerLeft.y, lowerLeft.z, upperRight.x, upperRight.y, upperRight.z, lowerRight.x, lowerRight.y, lowerRight.z];
     };
 
     CentralBody.prototype._computePoleQuad = function(sceneState, maxLat, maxGivenLat, viewProjMatrix, viewportTransformation) {
-        var pt1 = this._ellipsoid.toCartesian(new Cartographic2(0.0, maxGivenLat));
-        var pt2 = this._ellipsoid.toCartesian(new Cartographic2(Math.PI, maxGivenLat));
+        var pt1 = this._ellipsoid.cartographicToCartesian(new Cartographic(0.0, maxGivenLat));
+        var pt2 = this._ellipsoid.cartographicToCartesian(new Cartographic(Math.PI, maxGivenLat));
         var radius = pt1.subtract(pt2).magnitude() * 0.5;
 
-        var center = this._ellipsoid.toCartesian(new Cartographic2(0.0, maxLat));
+        var center = this._ellipsoid.cartographicToCartesian(new Cartographic(0.0, maxLat));
 
         var right;
         var dir = sceneState.camera.direction;
@@ -1325,8 +1407,8 @@ define([
             right = dir.cross(Cartesian3.UNIT_Z).normalize();
         }
 
-        var screenRight = center.add(right.multiplyWithScalar(radius));
-        var screenUp = center.add(Cartesian3.UNIT_Z.cross(right).normalize().multiplyWithScalar(radius));
+        var screenRight = center.add(right.multiplyByScalar(radius));
+        var screenUp = center.add(Cartesian3.UNIT_Z.cross(right).normalize().multiplyByScalar(radius));
 
         center = Transforms.pointToWindowCoordinates(viewProjMatrix, viewportTransformation, center);
         screenRight = Transforms.pointToWindowCoordinates(viewProjMatrix, viewportTransformation, screenRight);
@@ -1604,6 +1686,10 @@ define([
             this._quadH.setDestroyTexture(false);
         }
 
+        if ((mode !== SceneMode.SCENE2D && mode !== SceneMode.MORPHING) && typeof this._minTileDistance === 'undefined') {
+            this._minTileDistance = this._createTileDistanceFunction(sceneState, width, height);
+        }
+
         this._quadV.update(context, sceneState);
         this._quadH.update(context, sceneState);
 
@@ -1616,7 +1702,7 @@ define([
         if (this.showSkyAtmosphere && !this._vaSky) {
             // PERFORMANCE_IDEA:  Is 60 the right amount to tessellate?  I think scaling the original
             // geometry in a vertex is a bad idea; at least, because it introduces a draw call per tile.
-            var skyMesh = CubeMapEllipsoidTessellator.compute(new Ellipsoid(this._ellipsoid.getRadii().multiplyWithScalar(1.025)), 60);
+            var skyMesh = CubeMapEllipsoidTessellator.compute(new Ellipsoid(this._ellipsoid.getRadii().multiplyByScalar(1.025)), 60);
             this._vaSky = context.createVertexArrayFromMesh({
                 mesh : skyMesh,
                 attributeIndices : MeshFilters.createAttributeIndices(skyMesh),
@@ -1687,24 +1773,31 @@ define([
         // update scisor/depth plane
         var depthQuad = this._computeDepthQuad(sceneState);
 
-        // TODO: re-enable scissorTest
-        /*if (mode === SceneMode.SCENE3D) {
+        // TODO: Re-enable scissor test.
+        /*var scissorTest = { enabled : false };
+        if (mode === SceneMode.SCENE3D) {
             var uniformState = context.getUniformState();
             var mvp = uniformState.getModelViewProjection();
-            var scissorTest = {
-                enabled : true,
-                rectangle : this._createScissorRectangle({
-                    quad : depthQuad,
-                    modelViewProjection : mvp,
-                    viewportTransformation : uniformState.getViewportTransformation()
-                })
-            };
+            var rect = this._createScissorRectangle({
+                sceneState : sceneState,
+                width : width,
+                height : height,
+                quad : depthQuad,
+                modelViewProjection : mvp,
+                viewportTransformation : uniformState.getViewportTransformation()
+            });
 
-            this._rsColor.scissorTest = scissorTest;
-            this._rsDepth.scissorTest = scissorTest;
-            this._quadV.renderState.scissorTest = scissorTest;
-            this._quadH.renderState.scissorTest = scissorTest;
-        }*/
+            if (rect.width !== 0 && rect.height !== 0) {
+                scissorTest = {
+                    enabled : true,
+                    rectangle : rect
+                };
+            }
+        }
+        this._rsColor.scissorTest = scissorTest;
+        this._rsDepth.scissorTest = scissorTest;
+        this._quadV.renderState.scissorTest = scissorTest;
+        this._quadH.renderState.scissorTest = scissorTest;*/
 
         // depth plane
         if (!this._vaDepth) {
@@ -1917,7 +2010,7 @@ define([
             }
         } else {
             // after the camera passes the minimum height, there is no ground atmosphere effect
-            var showAtmosphere = this._ellipsoid.toCartographic3(cameraPosition).height >= this._minGroundFromAtmosphereHeight;
+            var showAtmosphere = this._ellipsoid.cartesianToCartographic(cameraPosition).height >= this._minGroundFromAtmosphereHeight;
             if (this.showGroundAtmosphere && showAtmosphere) {
                 this._sp = this._spGroundFromAtmosphere;
                 this._spPoles = this._spPolesGroundFromAtmosphere;
@@ -1930,7 +2023,6 @@ define([
 
         this._occluder.setCameraPosition(cameraPosition);
 
-        // TODO: refactor
         this._fillPoles(context, sceneState);
 
         this._throttleImages(sceneState);
@@ -1969,6 +2061,11 @@ define([
         this._projection = projection;
     };
 
+    var clearState = {
+        framebuffer : undefined,
+        color : new Color(0.0, 0.0, 0.0, 0.0)
+    };
+
     /**
      * DOC_TBA
      * @memberof CentralBody
@@ -1976,15 +2073,8 @@ define([
     CentralBody.prototype.render = function(context) {
         if (this.show) {
             // clear FBO
-            context.clear(context.createClearState({
-                framebuffer : this._fb,
-                color : {
-                    red : 0.0,
-                    green : 0.0,
-                    blue : 0.0,
-                    alpha : 0.0
-                }
-            }));
+            clearState.framebuffer = this._fb;
+            context.clear(context.createClearState(clearState));
 
             if (this.showSkyAtmosphere) {
                 context.draw({
@@ -2031,10 +2121,8 @@ define([
                     rtc = Cartesian3.ZERO;
                     tile.mode = 2;
                 }
-                var centerEye = mv.multiplyWithVector(new Cartesian4(rtc.x, rtc.y, rtc.z, 1.0));
-                var mvrtc = mv.clone();
-                mvrtc.setColumn3(centerEye);
-                tile.modelView = mvrtc;
+                var centerEye = mv.multiplyByVector(new Cartesian4(rtc.x, rtc.y, rtc.z, 1.0));
+                tile.modelView = mv.setColumn(3, centerEye, tile.modelView);
 
                 context.continueDraw({
                     primitiveType : PrimitiveType.TRIANGLES,

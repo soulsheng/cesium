@@ -10,7 +10,7 @@ defineSuite([
          MouseEventType,
          Cartesian2) {
     "use strict";
-    /*global it,expect,beforeEach,afterEach*/
+    /*global jasmine,describe,xdescribe,it,xit,expect,beforeEach,afterEach,beforeAll,afterAll,spyOn,runs,waits,waitsFor*/
 
     // create a mock document object to add events to so they are callable.
     var MockDoc = function() {
@@ -105,31 +105,6 @@ defineSuite([
         handler = !handler.isDestroyed() && handler.destroy();
     });
 
-    it('setting key events require an action', function() {
-        expect(function() {
-            handler.setKeyAction();
-        }).toThrow();
-    });
-
-    it('setting key events require a key', function() {
-        expect(function() {
-            handler.setKeyAction(function() {
-            });
-        }).toThrow();
-    });
-
-    it('getting key events require a key', function() {
-        expect(function() {
-            handler.getKeyAction();
-        }).toThrow();
-    });
-
-    it('removing key events require a key', function() {
-        expect(function() {
-            handler.removeKeyAction();
-        }).toThrow();
-    });
-
     it('setting mouse events require an action', function() {
         expect(function() {
             handler.setMouseAction();
@@ -153,54 +128,6 @@ defineSuite([
         expect(function() {
             handler.removeMouseAction();
         }).toThrow();
-    });
-
-    it('key events', function() {
-        var keyPressed = false;
-
-        var keyPressedFunction = function() {
-            keyPressed = !keyPressed;
-        };
-
-        handler.setKeyAction(keyPressedFunction, 'a');
-        element.fireEvents('keydown', {
-            keyCode : 'a'.charCodeAt(0)
-        });
-        expect(keyPressed).toEqual(true);
-
-        expect(handler.getKeyAction('a') === keyPressedFunction).toEqual(true);
-
-        handler.removeKeyAction('a');
-        element.fireEvents('keyDown', {
-            keyCode : 'a'.charCodeAt(0)
-        });
-
-        expect(keyPressed).toEqual(true);
-    });
-
-    it('modified key events', function() {
-        var modifiedKeyPressed = false;
-
-        var modfiedKeyPressedFunction = function() {
-            modifiedKeyPressed = !modifiedKeyPressed;
-        };
-
-        handler.setKeyAction(modfiedKeyPressedFunction, 'b', EventModifier.CTRL);
-        element.fireEvents('keydown', {
-            keyCode : 'b'.charCodeAt(0),
-            ctrlKey : true
-        });
-        expect(modifiedKeyPressed).toEqual(true);
-
-        expect(handler.getKeyAction('b', EventModifier.CTRL) === modfiedKeyPressedFunction).toEqual(true);
-
-        handler.removeKeyAction('b', EventModifier.CTRL);
-        element.fireEvents('keyDown', {
-            keyCode : 'b'.charCodeAt(0),
-            ctrlKey : true
-        });
-
-        expect(modifiedKeyPressed).toEqual(true);
     });
 
     it('mouse right down', function() {
@@ -1032,28 +959,6 @@ defineSuite([
         });
 
         expect(actualCoords).toEqual(expectedCoords);
-    });
-
-    it('get middle press time', function() {
-        handler.setMouseAction(function(event) {}, MouseEventType.MIDDLE_DOWN);
-        element.fireEvents('mousedown', {
-            button : 1,
-            clientX : 1,
-            clientY : 1
-        });
-
-        expect(handler.getMiddlePressTime()).toBeDefined();
-    });
-
-    it('get middle release time', function() {
-        handler.setMouseAction(function(event) {}, MouseEventType.MIDDLE_DOWN);
-        element.fireEvents('mouseup', {
-            button : 1,
-            clientX : 1,
-            clientY : 1
-        });
-
-        expect(handler.getMiddleReleaseTime()).toBeDefined();
     });
 
     it('modified mouse move', function() {

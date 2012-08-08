@@ -6,6 +6,7 @@ define([
         '../Core/Quaternion',
         '../Core/Cartesian2',
         '../Core/Cartesian3',
+        '../Core/Matrix3',
         './CameraEventHandler',
         './CameraEventType',
         './CameraHelpers'
@@ -16,6 +17,7 @@ define([
         Quaternion,
         Cartesian2,
         Cartesian3,
+        Matrix3,
         CameraEventHandler,
         CameraEventType,
         CameraHelpers) {
@@ -27,7 +29,7 @@ define([
      * A type that defines camera behavior: movement of the position in the direction
      * of the camera's axes and rotation of the axes keeping the position stationary.
      *
-     * @name CameraFreeLookController
+     * @alias CameraFreeLookController
      *
      * @param {HTMLCanvasElement} canvas An HTML canvas element used for its dimensions
      * and for listening on user events.
@@ -35,7 +37,7 @@ define([
      *
      * @internalConstructor
      */
-    function CameraFreeLookController(canvas, camera) {
+    var CameraFreeLookController = function(canvas, camera) {
         this._canvas = canvas;
         this._camera = camera;
         this._handler = new CameraEventHandler(canvas, CameraEventType.LEFT_DRAG, EventModifier.SHIFT);
@@ -52,7 +54,7 @@ define([
          * DOC_TBD
          */
         this.horizontalRotationAxis = undefined;
-    }
+    };
 
     /**
      * Translates the camera's position by <code>rate</code> along the camera's view vector.
@@ -198,9 +200,9 @@ define([
     };
 
     CameraFreeLookController.prototype._rotateTwoAxes = function(v0, v1, axis, angle) {
-        var rotation = Quaternion.fromAxisAngle(axis, angle).toRotationMatrix();
-        var u0 = rotation.multiplyWithVector(v0);
-        var u1 = rotation.multiplyWithVector(v1);
+        var rotation = Matrix3.fromQuaternion(Quaternion.fromAxisAngle(axis, angle));
+        var u0 = rotation.multiplyByVector(v0);
+        var u1 = rotation.multiplyByVector(v1);
         return [u0, u1];
     };
 
@@ -220,10 +222,10 @@ define([
     CameraFreeLookController.prototype.rotate = function(axis, angle) {
         var a = Cartesian3.clone(axis);
         var turnAngle = angle || this._moveRate;
-        var rotation = Quaternion.fromAxisAngle(a, turnAngle).toRotationMatrix();
-        var direction = rotation.multiplyWithVector(this._camera.direction);
-        var up = rotation.multiplyWithVector(this._camera.up);
-        var right = rotation.multiplyWithVector(this._camera.right);
+        var rotation = Matrix3.fromQuaternion(Quaternion.fromAxisAngle(a, turnAngle));
+        var direction = rotation.multiplyByVector(this._camera.direction);
+        var up = rotation.multiplyByVector(this._camera.up);
+        var right = rotation.multiplyByVector(this._camera.right);
         this._camera.direction = direction;
         this._camera.up = up;
         this._camera.right = right;
@@ -253,34 +255,34 @@ define([
         var startNDC = new Cartesian2((2.0 / width) * movement.startPosition.x - 1.0, (2.0 / height) * (height - movement.startPosition.y) - 1.0);
         var endNDC = new Cartesian2((2.0 / width) * movement.endPosition.x - 1.0, (2.0 / height) * (height - movement.endPosition.y) - 1.0);
 
-        var nearCenter = camera.position.add(camera.direction.multiplyWithScalar(near));
+        var nearCenter = camera.position.add(camera.direction.multiplyByScalar(near));
 
-        var startX = camera.right.multiplyWithScalar(startNDC.x * near * tanTheta);
+        var startX = camera.right.multiplyByScalar(startNDC.x * near * tanTheta);
         startX = nearCenter.add(startX).subtract(camera.position).normalize();
-        var endX = camera.right.multiplyWithScalar(endNDC.x * near * tanTheta);
+        var endX = camera.right.multiplyByScalar(endNDC.x * near * tanTheta);
         endX = nearCenter.add(endX).subtract(camera.position).normalize();
 
         var dot = startX.dot(endX);
         var angle = 0.0;
-        var axis = (this.horizontalRotationAxis) ? this.horizontalRotationAxis : camera.position;
+        var axis = (typeof this.horizontalRotationAxis !== 'undefined') ? this.horizontalRotationAxis : camera.up;
         axis = (movement.startPosition.x > movement.endPosition.x) ? axis : axis.negate();
         axis = axis.normalize();
         if (dot < 1.0) { // dot is in [0, 1]
             angle = -Math.acos(dot);
         }
-        var rotation = Quaternion.fromAxisAngle(axis, angle).toRotationMatrix();
+        var rotation = Matrix3.fromQuaternion(Quaternion.fromAxisAngle(axis, angle));
 
         if (1.0 - Math.abs(camera.direction.dot(axis)) > CesiumMath.EPSILON6) {
-            camera.direction = rotation.multiplyWithVector(camera.direction);
+            camera.direction = rotation.multiplyByVector(camera.direction);
         }
 
         if (1.0 - Math.abs(camera.up.dot(axis)) > CesiumMath.EPSILON6) {
-            camera.up = rotation.multiplyWithVector(camera.up);
+            camera.up = rotation.multiplyByVector(camera.up);
         }
 
-        var startY = camera.up.multiplyWithScalar(startNDC.y * near * tanPhi);
+        var startY = camera.up.multiplyByScalar(startNDC.y * near * tanPhi);
         startY = nearCenter.add(startY).subtract(camera.position).normalize();
-        var endY = camera.up.multiplyWithScalar(endNDC.y * near * tanPhi);
+        var endY = camera.up.multiplyByScalar(endNDC.y * near * tanPhi);
         endY = nearCenter.add(endY).subtract(camera.position).normalize();
 
         dot = startY.dot(endY);
@@ -291,14 +293,14 @@ define([
         } else { // no rotation
             axis = Cartesian3.UNIT_X;
         }
-        rotation = Quaternion.fromAxisAngle(axis, angle).toRotationMatrix();
+        rotation = Matrix3.fromQuaternion(Quaternion.fromAxisAngle(axis, angle));
 
         if (1.0 - Math.abs(camera.direction.dot(axis)) > CesiumMath.EPSILON6) {
-            camera.direction = rotation.multiplyWithVector(camera.direction);
+            camera.direction = rotation.multiplyByVector(camera.direction);
         }
 
         if (1.0 - Math.abs(camera.up.dot(axis)) > CesiumMath.EPSILON6) {
-            camera.up = rotation.multiplyWithVector(camera.up);
+            camera.up = rotation.multiplyByVector(camera.up);
         }
 
         camera.right = camera.direction.cross(camera.up);
@@ -321,7 +323,7 @@ define([
     };
 
     /**
-     * Removes mouse and keyboard listeners held by this object.
+     * Removes mouse listeners held by this object.
      * <br /><br />
      * Once an object is destroyed, it should not be used; calling any function other than
      * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,

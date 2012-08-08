@@ -1,9 +1,14 @@
 /*global define*/
-define(['Core/DeveloperError'], function(DeveloperError) {
+define([
+        './DeveloperError'
+    ], function(
+        DeveloperError) {
     "use strict";
 
     /**
      * Determines if a given date is a leap year.
+     *
+     * @exports isLeapYear
      *
      * @param {Number} year The year to be tested.
      *

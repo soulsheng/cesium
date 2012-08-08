@@ -19,7 +19,7 @@ define([
      * define the unit vector normal to the plane, and the w component is the distance of the
      * plane from the origin/camera position.
      *
-     * @name PerspectiveFrustum
+     * @alias PerspectiveFrustum
      * @constructor
      *
      * @example
@@ -29,7 +29,7 @@ define([
      * frustum.near = 1.0;
      * frustum.far = 2.0;
      */
-    function PerspectiveFrustum() {
+    var PerspectiveFrustum = function() {
         /**
          * The angle of the field of view, in radians.
          *
@@ -64,7 +64,7 @@ define([
 
         this._perspectiveMatrix = null;
         this._infinitePerspective = null;
-    }
+    };
 
     /**
      * Returns the perspective projection matrix computed from the view frustum.
@@ -127,8 +127,8 @@ define([
         var n = this.near;
         var f = this.far;
 
-        this._perspectiveMatrix = Matrix4.createPerspectiveOffCenter(l, r, b, t, n, f);
-        this._infinitePerspective = Matrix4.createInfinitePerspectiveOffCenter(l, r, b, t, n);
+        this._perspectiveMatrix = Matrix4.computePerspectiveOffCenter(l, r, b, t, n, f);
+        this._infinitePerspective = Matrix4.computeInfinitePerspectiveOffCenter(l, r, b, t, n);
     };
 
     /**
@@ -172,29 +172,29 @@ define([
         planes.length = 6;
 
         var normal, planeVec;
-        var nearCenter = pos.add(dir.multiplyWithScalar(n));
-        var farCenter = pos.add(dir.multiplyWithScalar(f));
+        var nearCenter = pos.add(dir.multiplyByScalar(n));
+        var farCenter = pos.add(dir.multiplyByScalar(f));
 
         //Left plane computation
-        planeVec = nearCenter.add(right.negate().multiplyWithScalar(r)).subtract(pos);
+        planeVec = nearCenter.add(right.negate().multiplyByScalar(r)).subtract(pos);
         planeVec = planeVec.normalize();
         normal = planeVec.cross(u);
         planes[0] = new Cartesian4(normal.x, normal.y, normal.z, -normal.dot(pos));
 
         //Right plane computation
-        planeVec = nearCenter.add(right.multiplyWithScalar(r)).subtract(pos);
+        planeVec = nearCenter.add(right.multiplyByScalar(r)).subtract(pos);
         planeVec = planeVec.normalize();
         normal = u.cross(planeVec);
         planes[1] = new Cartesian4(normal.x, normal.y, normal.z, -normal.dot(pos));
 
         //Bottom plane computation
-        planeVec = nearCenter.add(u.negate().multiplyWithScalar(t)).subtract(position);
+        planeVec = nearCenter.add(u.negate().multiplyByScalar(t)).subtract(position);
         planeVec = planeVec.normalize();
         normal = right.cross(planeVec);
         planes[2] = new Cartesian4(normal.x, normal.y, normal.z, -normal.dot(pos));
 
         //Top plane computation
-        planeVec = nearCenter.add(u.multiplyWithScalar(t)).subtract(pos);
+        planeVec = nearCenter.add(u.multiplyByScalar(t)).subtract(pos);
         planeVec = planeVec.normalize();
         normal = planeVec.cross(right);
         planes[3] = new Cartesian4(normal.x, normal.y, normal.z, -normal.dot(pos));
@@ -233,44 +233,6 @@ define([
      */
     PerspectiveFrustum.prototype.equals = function(other) {
         return (this.fovy === other.fovy && this.aspectRatio === other.aspectRatio && this.near === other.near && this.far === other.far);
-    };
-
-    /**
-     * Returns true if this object was destroyed; otherwise, false.
-     * <br /><br />
-     * If this object was destroyed, it should not be used; calling any function other than
-     * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.
-     *
-     * @memberof PerspectiveFrustum
-     *
-     * @return {Boolean} <code>true</code> if this object was destroyed; otherwise, <code>false</code>.
-     *
-     * @see PerspectiveFrustum#destroy
-     */
-    PerspectiveFrustum.prototype.isDestroyed = function() {
-        return false;
-    };
-
-    /**
-     * Removes keyboard listeners held by this object.
-     * <br /><br />
-     * Once an object is destroyed, it should not be used; calling any function other than
-     * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,
-     * assign the return value (<code>undefined</code>) to the object as done in the example.
-     *
-     * @memberof PerspectiveFrustum
-     *
-     * @return {undefined}
-     *
-     * @exception {DeveloperError} This object was destroyed, i.e., destroy() was called.
-     *
-     * @see PerspectiveFrustum#isDestroyed
-     *
-     * @example
-     * frustum = frustum && frustum.destroy();
-     */
-    PerspectiveFrustum.prototype.destroy = function() {
-        return destroyObject(this);
     };
 
     return PerspectiveFrustum;

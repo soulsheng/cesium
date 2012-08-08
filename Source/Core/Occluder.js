@@ -16,7 +16,7 @@ define([
      * The occluder can be used to determine whether or not other objects are visible or hidden behind the
      * visible horizon defined by the occluder and camera position.
      *
-     * @name Occluder
+     * @alias Occluder
      *
      * @param {BoundingSphere} occluderBoundingSphere The bounding sphere surrounding the occluder.
      * @param {Cartesian3} cameraPosition The coordinate of the viewer/camera.
@@ -32,7 +32,7 @@ define([
      * var occluderBoundingSphere = new BoundingSphere(new Cartesian3(0, 0, -1), 1);
      * var occluder = new Occluder(occluderBoundingSphere, cameraPosition);
      */
-    function Occluder(occluderBoundingSphere, cameraPosition) {
+    var Occluder = function(occluderBoundingSphere, cameraPosition) {
         if (!occluderBoundingSphere) {
             throw new DeveloperError('occluderBoundingSphere is required.');
         }
@@ -51,7 +51,7 @@ define([
 
         // setCameraPosition fills in the above values
         this.setCameraPosition(cameraPosition);
-    }
+    };
 
     /**
      * Returns the position of the occluder.
@@ -91,9 +91,9 @@ define([
         if (invCameraToOccluderDistance > occluderRadiusSqrd) {
             horizonDistance = Math.sqrt(invCameraToOccluderDistance - occluderRadiusSqrd);
             invCameraToOccluderDistance = 1.0 / Math.sqrt(invCameraToOccluderDistance);
-            horizonPlaneNormal = cameraToOccluderVec.multiplyWithScalar(invCameraToOccluderDistance);
+            horizonPlaneNormal = cameraToOccluderVec.multiplyByScalar(invCameraToOccluderDistance);
             var nearPlaneDistance = horizonDistance * horizonDistance * invCameraToOccluderDistance;
-            horizonPlanePosition = cameraPosition.add(horizonPlaneNormal.multiplyWithScalar(nearPlaneDistance));
+            horizonPlanePosition = cameraPosition.add(horizonPlaneNormal.multiplyByScalar(nearPlaneDistance));
         } else {
             horizonDistance = Number.MAX_VALUE;
         }
@@ -314,7 +314,7 @@ define([
         }
 
         var distance = occluderRadius / dot;
-        var occludeePoint = occluderPosition.add(occluderPlaneNormal.multiplyWithScalar(distance));
+        var occludeePoint = occluderPosition.add(occluderPlaneNormal.multiplyByScalar(distance));
         return {
             occludeePoint : occludeePoint,
             valid : valid
@@ -345,7 +345,7 @@ define([
             tempVec1 = Cartesian3.UNIT_Z;
         }
         var u = ((occluderPlaneNormal.dot(tempVec0)) + occluderPlaneD) / -(occluderPlaneNormal.dot(tempVec1));
-        return ((tempVec0.add(tempVec1.multiplyWithScalar(u))).subtract(occluderPosition)).normalize();
+        return ((tempVec0.add(tempVec1.multiplyByScalar(u))).subtract(occluderPosition)).normalize();
     };
 
     Occluder._rotationVector = function(occluderPosition, occluderPlaneNormal, occluderPlaneD, position, anyRotationVector) {
@@ -385,7 +385,7 @@ define([
         var cosTheta = horizonDistance * invOccluderToPositionDistance;
         var horizonPlaneDistance = cosTheta * horizonDistance;
         positionToOccluder = positionToOccluder.normalize();
-        var horizonPlanePosition = pos.add(positionToOccluder.multiplyWithScalar(horizonPlaneDistance));
+        var horizonPlanePosition = pos.add(positionToOccluder.multiplyByScalar(horizonPlaneDistance));
         var horizonCrossDistance = Math.sqrt(horizonDistanceSquared - (horizonPlaneDistance * horizonPlaneDistance));
 
         //Rotate the position to occluder vector 90 degrees
@@ -397,7 +397,7 @@ define([
         horizonCrossDirection = horizonCrossDirection.normalize();
 
         //Horizon positions
-        var offset = horizonCrossDirection.multiplyWithScalar(horizonCrossDistance);
+        var offset = horizonCrossDirection.multiplyByScalar(horizonCrossDistance);
         tempVec = ((horizonPlanePosition.add(offset)).subtract(occluderPosition)).normalize();
         var dot0 = occluderPlaneNormal.dot(tempVec);
         tempVec = ((horizonPlanePosition.subtract(offset)).subtract(occluderPosition)).normalize();

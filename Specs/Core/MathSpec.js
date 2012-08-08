@@ -2,15 +2,13 @@
 defineSuite([
          'Core/Math',
          'Core/Cartesian3',
-         'Core/Cartographic2',
-         'Core/Cartographic3'
+         'Core/Cartographic'
      ], function(
          CesiumMath,
          Cartesian3,
-         Cartographic2,
-         Cartographic3) {
+         Cartographic) {
     "use strict";
-    /*global it,expect*/
+    /*global jasmine,describe,xdescribe,it,xit,expect,beforeEach,afterEach,beforeAll,afterAll,spyOn,runs,waits,waitsFor*/
 
     it('sign of -2', function() {
         expect(CesiumMath.sign(-2)).toEqual(-1);
@@ -22,20 +20,6 @@ defineSuite([
 
     it('sign of 0', function() {
         expect(CesiumMath.sign(0)).toEqual(0);
-    });
-
-    ///////////////////////////////////////////////////////////////////////
-
-    it('angleBetween between orthogonal vectors', function() {
-        expect(CesiumMath.angleBetween(Cartesian3.UNIT_X, Cartesian3.UNIT_Y)).toEqual(CesiumMath.PI_OVER_TWO);
-    });
-
-    it('angleBetween between colinear vectors', function() {
-        expect(CesiumMath.angleBetween(Cartesian3.UNIT_X, Cartesian3.UNIT_X)).toEqual(0.0);
-    });
-
-    it('angleBetween between zero vector', function() {
-        expect(CesiumMath.angleBetween(Cartesian3.UNIT_X, Cartesian3.ZERO)).toEqual(0.0);
     });
 
     //////////////////////////////////////////////////////////////////////
@@ -90,34 +74,8 @@ defineSuite([
         expect(CesiumMath.toRadians(360.0)).toEqual(2 * Math.PI);
     });
 
-    it('cartographic3ToRadians', function() {
-        var c = CesiumMath.cartographic3ToRadians(new Cartographic3(360.0, 180.0, 1.0));
-        expect(c.longitude).toEqual(2.0 * Math.PI);
-        expect(c.latitude).toEqual(Math.PI);
-        expect(c.height).toEqual(1.0);
-    });
-
-    it('cartographic2ToRadians', function() {
-        var c = CesiumMath.cartographic2ToRadians(new Cartographic2(180.0, 360.0));
-        expect(c.longitude).toEqual(Math.PI);
-        expect(c.latitude).toEqual(2.0 * Math.PI);
-    });
-
     it('toDegrees', function() {
         expect(CesiumMath.toDegrees(Math.PI)).toEqual(180.0);
-    });
-
-    it('cartographic3ToDegrees', function() {
-        var c = CesiumMath.cartographic3ToDegrees(new Cartographic3(2.0 * Math.PI, Math.PI, 1.0));
-        expect(c.longitude).toEqual(360.0);
-        expect(c.latitude).toEqual(180.0);
-        expect(c.height).toEqual(1.0);
-    });
-
-    it('cartographic2ToDegrees', function() {
-        var c = CesiumMath.cartographic2ToDegrees(new Cartographic2(Math.PI, 2.0 * Math.PI));
-        expect(c.longitude).toEqual(180.0);
-        expect(c.latitude).toEqual(360.0);
     });
 
     it('convertLongitudeRange (1)', function() {
@@ -147,5 +105,32 @@ defineSuite([
     it('negativePiToPi should not change', function() {
         expect(CesiumMath.negativePiToPi(Math.PI - 1)).toEqualEpsilon(Math.PI - 1, CesiumMath.EPSILON16);
         expect(CesiumMath.negativePiToPi(-Math.PI + 1)).toEqualEpsilon(-Math.PI + 1, CesiumMath.EPSILON16);
+    });
+
+    var factorials = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 39916800, 479001600, 6227020800, 87178291200, 1307674368000, 20922789888000, 355687428096000, 6402373705728000,
+            121645100408832000, 2432902008176640000, 51090942171709440000, 1124000727777607680000, 25852016738884976640000, 620448401733239439360000];
+
+    it('factorial produces the correct results', function() {
+        for ( var i = 0; i < factorials.length; i++) {
+            expect(CesiumMath.factorial(i)).toEqual(factorials[i]);
+        }
+    });
+
+    it('factorial throws for non-numbers', function() {
+        expect(function() {
+            CesiumMath.factorial({});
+        }).toThrow();
+    });
+
+    it('factorial throws for negative numbers', function() {
+        expect(function() {
+            CesiumMath.factorial(-1);
+        }).toThrow();
+    });
+
+    it('factorial throws for undefined', function() {
+        expect(function() {
+            CesiumMath.factorial();
+        }).toThrow();
     });
 });

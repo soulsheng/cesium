@@ -1,5 +1,6 @@
 /*global define*/
 define([
+        '../Core/Color',
         '../Core/shallowEquals',
         '../Core/Cartesian2',
         '../Core/Cartesian3',
@@ -9,6 +10,7 @@ define([
         './HorizontalOrigin',
         './VerticalOrigin'
     ], function(
+        Color,
         shallowEquals,
         Cartesian2,
         Cartesian3,
@@ -22,7 +24,7 @@ define([
     /**
      * DOC_TBA
      *
-     * @name Label
+     * @alias Label
      * @internalConstructor
      *
      * @see LabelCollection
@@ -31,25 +33,15 @@ define([
      *
      * @see <a href='http://www.whatwg.org/specs/web-apps/current-work/#2dcontext'>HTML canvas 2D context</a>
      */
-    function Label(labelTemplate, labelCollection) {
+    var Label = function(labelTemplate, labelCollection) {
         var l = labelTemplate || {};
         var show = (typeof l.show === 'undefined') ? true : l.show;
         var billboardCollection = labelCollection._getCollection();
 
         this._text = l.text || '';
         this._font = l.font || '30px sans-serif';
-        this._fillColor = l.fillColor || {
-            red : 1.0,
-            green : 1.0,
-            blue : 1.0,
-            alpha : 1.0
-        };
-        this._outlineColor = l.outlineColor || {
-            red : 0.0,
-            green : 0.0,
-            blue : 0.0,
-            alpha : 1.0
-        };
+        this._fillColor = (typeof l.fillColor !== 'undefined') ? Color.clone(l.fillColor) : new Color(1.0, 1.0, 1.0, 1.0);
+        this._outlineColor = (typeof l.outlineColor !== 'undefined') ? Color.clone(l.outlineColor) : new Color(0.0, 0.0, 0.0, 1.0);
         this._style = l.style || LabelStyle.FILL;
         this._verticalOrigin = l.verticalOrigin || VerticalOrigin.BOTTOM;
         this._horizontalOrigin = l.horizontalOrigin || HorizontalOrigin.LEFT;
@@ -65,7 +57,7 @@ define([
         this._billboards = undefined;
 
         this._createBillboards();
-    }
+    };
 
     /**
      * Returns true if this label will be shown.  Call {@link Label#setShow}
@@ -198,10 +190,9 @@ define([
 
     /**
      * DOC_TBA
+     * CSS font-family
      *
      * @memberof Label
-     *
-     * CSS font-family
      *
      * @see Label#getFont
      * @see Label#setFillColor
@@ -239,9 +230,8 @@ define([
      */
     Label.prototype.setFillColor = function(value) {
         var c = this._fillColor;
-        if ((typeof value !== 'undefined') &&
-            (c.red !== value.red || c.green !== value.green || c.blue !== value.blue || c.alpha !== value.alpha)) {
-            this._fillColor = value;
+        if ((typeof value !== 'undefined') && !Color.equals(c, value)) {
+            Color.clone(value, this._fillColor);
             this._createBillboards();
         }
     };
@@ -270,9 +260,8 @@ define([
      */
     Label.prototype.setOutlineColor = function(value) {
         var c = this._outlineColor;
-        if ((typeof value !== 'undefined') &&
-            (c.red !== value.red || c.green !== value.green || c.blue !== value.blue || c.alpha !== value.alpha)) {
-            this._outlineColor = value;
+        if ((typeof value !== 'undefined') && !Color.equals(c, value)) {
+            Color.clone(value, this._outlineColor);
             this._createBillboards();
         }
     };
@@ -636,7 +625,7 @@ define([
         var self = this;
 
         var onCanvasCreated = function() {
-            self._setCreateTextureAtlas(true);
+            self._setUpdateTextureAtlas(true);
         };
 
         for (i = 0; i < length; i++) {
@@ -818,8 +807,8 @@ define([
         }
     };
 
-    Label.prototype._setCreateTextureAtlas = function(value) {
-        this._labelCollection._setCreateTextureAtlas(value);
+    Label.prototype._setUpdateTextureAtlas = function(value) {
+        this._labelCollection._setUpdateTextureAtlas(value);
     };
 
     return Label;

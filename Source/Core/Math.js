@@ -1,20 +1,13 @@
 /*global define*/
 define([
-        './Cartesian2',
-        './Cartesian3',
-        './Cartographic2',
-        './Cartographic3'
-    ],
-    function(
-        Cartesian2,
-        Cartesian3,
-        Cartographic2,
-        Cartographic3) {
+        './DeveloperError'
+       ], function(
+         DeveloperError) {
     "use strict";
 
     /**
-     * @exports CesiumMath
      * Math functions.
+     * @exports CesiumMath
      */
     var CesiumMath = {};
 
@@ -181,27 +174,6 @@ define([
         }
 
         return 0;
-    };
-
-    /**
-     * DOC_TBA
-     */
-    CesiumMath.angleBetween = function(vector1, vector2) {
-        var v1 = new Cartesian3(vector1.x, vector1.y, vector1.z);
-        var v2 = new Cartesian3(vector2.x, vector2.y, vector2.z);
-
-        var magnitude1 = v1.magnitude();
-        var magnitude2 = v2.magnitude();
-
-        if ((magnitude1 < CesiumMath.EPSILON12) || (magnitude2 < CesiumMath.EPSILON12)) {
-            return 0.0;
-        }
-
-        var cross = v1.cross(v2);
-        var sinTheta = cross.magnitude();
-        var cosTheta = v1.dot(v2);
-
-        return Math.abs(Math.atan2(sinTheta, cosTheta));
     };
 
     /**
@@ -378,58 +350,12 @@ define([
     };
 
     /**
-     * Converts the longitude and latitude of a {@link Cartographic3} from degrees to radians.  The height is not changed.
-     * @param {Cartographic3} cartographic The cartographic position to convert in degrees.
-     * @return {Cartographic3} The corresponding cartographic position with longitude and latitude in radians.
-     */
-    CesiumMath.cartographic3ToRadians = function(cartographic) {
-        return new Cartographic3(
-                CesiumMath.toRadians(cartographic.longitude),
-                CesiumMath.toRadians(cartographic.latitude),
-                cartographic.height);
-    };
-
-    /**
-     * Converts the longitude and latitude of a {@link Cartographic2} from degrees to radians.
-     * @param {Cartographic2} cartographic The cartographic position to convert in degrees.
-     * @return {Cartographic2} The corresponding cartographic position in radians.
-     */
-    CesiumMath.cartographic2ToRadians = function(cartographic) {
-        return new Cartographic2(
-                CesiumMath.toRadians(cartographic.longitude),
-                CesiumMath.toRadians(cartographic.latitude));
-    };
-
-    /**
      * Converts radians to degrees.
      * @param {Number} radians The angle to convert in radians.
      * @return {Number} The corresponding angle in degrees.
      */
     CesiumMath.toDegrees = function(radians) {
         return radians * CesiumMath.DEGREES_PER_RADIAN;
-    };
-
-    /**
-     * Converts the longitude and latitude of a {@link Cartographic3} from radians to degrees.  The height is not changed.
-     * @param {Cartographic3} cartographic The cartographic position to convert in radians.
-     * @return {Cartographic3} The corresponding cartographic position with longitude and latitude in degrees.
-     */
-    CesiumMath.cartographic3ToDegrees = function(cartographic) {
-        return new Cartographic3(
-                CesiumMath.toDegrees(cartographic.longitude),
-                CesiumMath.toDegrees(cartographic.latitude),
-                cartographic.height);
-    };
-
-    /**
-     * Converts the longitude and latitude of a {@link Cartographic2} from radians to degrees.
-     * @param {Cartographic2} cartographic The cartographic position to convert in radians.
-     * @return {Cartographic2} The corresponding cartographic position in degrees.
-     */
-    CesiumMath.cartographic2ToDegrees = function(cartographic) {
-        return new Cartographic2(
-                CesiumMath.toDegrees(cartographic.longitude),
-                CesiumMath.toDegrees(cartographic.latitude));
     };
 
     /**
@@ -485,6 +411,40 @@ define([
     CesiumMath.equalsEpsilon = function(left, right, epsilon) {
         epsilon = epsilon || 0.0;
         return Math.abs(left - right) <= epsilon;
+    };
+
+    var factorials = [1];
+
+    /**
+     * Computes the factorial of the provided number.
+     *
+     * @memberof CesiumMath
+     *
+     * @param {Number} n The number whose factorial is to be computed.
+     *
+     * @return {Number} The factorial of the provided number or undefined if the number is less than 0.
+     *
+     * @see <a href='http://en.wikipedia.org/wiki/Factorial'>Factorial on Wikipedia</a>.
+     *
+     * @example
+     * //Compute 7!, which is equal to 5040
+     * var computedFactorial = CesiumMath.factorial(7);
+     *
+     * @exception {DeveloperError} number greater than or equal to 0 is required.
+     */
+    CesiumMath.factorial = function(n) {
+        if (typeof n !== 'number' || n < 0) {
+            throw new DeveloperError('number greater than or equal to 0 is required.');
+        }
+
+        var length = factorials.length;
+        if (n >= length) {
+            var sum = factorials[length - 1];
+            for ( var i = length; i <= n; i++) {
+                factorials.push(sum * i);
+            }
+        }
+        return factorials[n];
     };
 
     return CesiumMath;

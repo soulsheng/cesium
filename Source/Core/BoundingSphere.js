@@ -23,7 +23,7 @@ define([
      * as its radius.
      * </p>
      *
-     * @name BoundingSphere
+     * @alias BoundingSphere
      *
      * @param {Array} positions List of points that the bounding sphere will enclose.  Each point must have <code>x</code>, <code>y</code>, and <code>z</code> properties.
      * @param {Number} radius An optional parameter, only to be supplied if <code>positions</code> contains a single point.
@@ -44,7 +44,7 @@ define([
      * // Compute the same bounding sphere using a center point and a radius.
      * var sphere = new BoundingSphere(new Cartesian3(0, 0, 0), 2);
      */
-    function BoundingSphere(positions, radius) {
+    var BoundingSphere = function(positions, radius) {
         if (!positions) {
             throw new DeveloperError('positions is required.');
         }
@@ -142,7 +142,7 @@ define([
             // Find the center of the sphere found using the Naive method.
             var minBoxPt = new Cartesian3(xMin.x, yMin.y, zMin.z);
             var maxBoxPt = new Cartesian3(xMax.x, yMax.y, zMax.z);
-            var naiveCenter = (minBoxPt.add(maxBoxPt)).multiplyWithScalar(0.5);
+            var naiveCenter = (minBoxPt.add(maxBoxPt)).multiplyByScalar(0.5);
 
             // Begin 2nd pass to find naive radius and modify the ritter sphere.
             var naiveRadius = 0;
@@ -179,7 +179,7 @@ define([
                 this.radius = naiveRadius;
             }
         }
-    }
+    };
 
     /**
      * DOC_TBA
@@ -196,7 +196,7 @@ define([
     BoundingSphere.planeSphereIntersect = function(sphere, plane) {
         var center = sphere.center;
         var radius = sphere.radius;
-        var distanceToPlane = plane.getXYZ().dot(center) + plane.w;
+        var distanceToPlane = Cartesian3.dot(plane, center) + plane.w;
 
         if (distanceToPlane < -radius) {
             // The center point is OUTSIDE of the frustum

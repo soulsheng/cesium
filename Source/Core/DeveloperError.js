@@ -12,29 +12,49 @@ define(function() {
      * be thrown at runtime, e.g., out of memory, that the calling code should be prepared
      * to catch.
      *
-     * @name DeveloperError
+     * @alias DeveloperError
      *
      * @param {String} [message=undefined] The error message for this exception.
      *
      * @see RuntimeError
      * @constructor
      */
-    function DeveloperError(message) {
+    var DeveloperError = function(message) {
         /**
          * 'DeveloperError' indicating that this exception was thrown due to a developer error.
-         *
-         * @constant
          * @type String
+         * @constant
          */
         this.name = 'DeveloperError';
 
         /**
          * The explanation for why this exception was thrown.
-         *
          * @type String
+         * @constant
          */
         this.message = message;
-    }
+
+        /**
+         * The Error object containing the stack trace.
+         * @type Error
+         * @constant
+         *
+         * @see <a href='https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error'>Error object on Mozilla Developer Network</a>.
+         */
+        this.error = new Error();
+    };
+
+    DeveloperError.prototype.toString = function () {
+        var str = this.name + ': ' + this.message;
+        if (typeof this.error !== 'undefined') {
+            if (typeof this.error.stack !== 'undefined') {
+                str += '\n' + this.error.stack.toString();
+            } else {
+                str += '\n' + this.error.toString();
+            }
+        }
+        return str;
+    };
 
     return DeveloperError;
 });

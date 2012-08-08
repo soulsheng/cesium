@@ -4,24 +4,24 @@ define([
         '../Core/EventHandler',
         '../Core/MouseEventType',
         '../Core/Quaternion',
+        '../Core/Matrix3',
         '../Core/Cartesian3',
-        '../Core/HermiteSpline',
-        '../Core/JulianDate'
+        '../Core/HermiteSpline'
     ], function(
         destroyObject,
         EventHandler,
         MouseEventType,
         Quaternion,
+        Matrix3,
         Cartesian3,
-        HermiteSpline,
-        JulianDate) {
+        HermiteSpline) {
     "use strict";
 
     /**
      * A type that defines camera behavior: the camera will follow a path from the
      * current position of the camera to an end point around an ellipsoid.
      *
-     * @name CameraFlightController
+     * @alias CameraFlightController
      * @internalConstructor
      *
      * @param {HTMLCanvasElement} canvas An HTML canvas element used to listen for user events.
@@ -32,7 +32,7 @@ define([
      *
      * @see CameraControllerCollection#addFlight
      */
-    function CameraFlightController(canvas, camera, ellipsoid, destination, duration, complete) {
+    var CameraFlightController = function(canvas, camera, ellipsoid, destination, duration, complete) {
         // get minimum altitude from which the whole ellipsoid is visible
         var radius = ellipsoid.getRadii().getMaximumComponent();
 
@@ -47,8 +47,8 @@ define([
         var altitude = dm - radius;
 
         this._camera = camera;
-        this._start = new JulianDate();
-        this._end = this._start.addSeconds(duration);
+        this._start = new Date();
+        this._end = new Date(this._start.getTime() + duration * 1000);
         this._path = this._createPath(ellipsoid, altitude, destination, duration);
         this._canceled = false;
         this._complete = complete;
@@ -62,7 +62,7 @@ define([
         this._handler.setMouseAction(cancelFlight, MouseEventType.LEFT_DOWN);
         this._handler.setMouseAction(cancelFlight, MouseEventType.RIGHT_DOWN);
         this._handler.setMouseAction(cancelFlight, MouseEventType.MIDDLE_DOWN);
-    }
+    };
 
     CameraFlightController.prototype._createPath = function(ellipsoid, altitude, endPoint, duration) {
         var start = this._camera.position;
@@ -83,12 +83,12 @@ define([
 
         maxStartAlt = ellipsoid.getMaximumRadius() + abovePercentage * altitude;
 
-        var aboveEnd = endPoint.normalize().multiplyWithScalar(maxStartAlt);
-        var afterStart = start.normalize().multiplyWithScalar(maxStartAlt);
+        var aboveEnd = endPoint.normalize().multiplyByScalar(maxStartAlt);
+        var afterStart = start.normalize().multiplyByScalar(maxStartAlt);
 
         var points, axis, angle, rotation;
         if (start.magnitude() > maxStartAlt && dot > 0) {
-            var middle = start.subtract(aboveEnd).multiplyWithScalar(0.5).add(aboveEnd);
+            var middle = start.subtract(aboveEnd).multiplyByScalar(0.5).add(aboveEnd);
 
             points = [{
                 point : start
@@ -110,9 +110,9 @@ define([
             var increment = incrementPercentage * angle;
             var startCondition = (startAboveMaxAlt) ? angle - increment : angle;
             for ( var i = startCondition; i > 0.0; i = i - increment) {
-                rotation = Quaternion.fromAxisAngle(axis, i).toRotationMatrix();
+                rotation = Matrix3.fromQuaternion(Quaternion.fromAxisAngle(axis, i));
                 points.push({
-                    point : rotation.multiplyWithVector(aboveEnd)
+                    point : rotation.multiplyByVector(aboveEnd)
                 });
             }
 
@@ -135,16 +135,16 @@ define([
      * @private
      */
     CameraFlightController.prototype.update = function() {
-        var time = new JulianDate(),
+        var time = new Date(),
             diff,
             position,
             normal,
             tangent,
             target;
 
-        var now = time.greaterThan(this._end) ? this._end : time;
+        var now = (time.getTime() > this._end.getTime()) ? this._end : time;
 
-        diff = this._start.getSecondsDifference(now);
+        diff = ( now.getTime() - this._start.getTime()) / 1000.0;
         position = this._path.evaluate(diff);
         normal = Cartesian3.UNIT_Z.cross(position).normalize();
         tangent = position.cross(normal).normalize();
@@ -175,7 +175,7 @@ define([
     };
 
     /**
-     * Removes keyboard listeners held by this object.
+     * Removes mouse listeners held by this object.
      * <br /><br />
      * Once an object is destroyed, it should not be used; calling any function other than
      * <code>isDestroyed</code> will result in a {@link DeveloperError} exception.  Therefore,

@@ -1,6 +1,7 @@
 /*global define*/
 define([
         '../Core/DeveloperError',
+        '../Core/Color',
         '../Core/combine',
         '../Core/destroyObject',
         '../Core/Cartesian2',
@@ -8,7 +9,7 @@ define([
         '../Core/Ellipsoid',
         '../Core/Rectangle',
         '../Core/Cartesian3',
-        '../Core/Cartographic3',
+        '../Core/Cartographic',
         '../Core/ComponentDatatype',
         '../Core/MeshFilters',
         '../Core/PrimitiveType',
@@ -29,6 +30,7 @@ define([
         '../Shaders/PolygonFSPick'
     ], function(
         DeveloperError,
+        Color,
         combine,
         destroyObject,
         Cartesian2,
@@ -36,7 +38,7 @@ define([
         Ellipsoid,
         Rectangle,
         Cartesian3,
-        Cartographic3,
+        Cartographic,
         ComponentDatatype,
         MeshFilters,
         PrimitiveType,
@@ -118,7 +120,7 @@ define([
     /**
      * DOC_TBA
      *
-     * @name Polygon
+     * @alias Polygon
      * @constructor
      *
      * @example
@@ -130,12 +132,12 @@ define([
      *   alpha : 1.0
      * };
      * polygon.setPositions([
-     *   ellipsoid.toCartesian(new Cartographic2(...)),
-     *   ellipsoid.toCartesian(new Cartographic2(...)),
-     *   ellipsoid.toCartesian(new Cartographic2(...))
+     *   ellipsoid.cartographicToCartesian(new Cartographic(...)),
+     *   ellipsoid.cartographicToCartesian(new Cartographic(...)),
+     *   ellipsoid.cartographicToCartesian(new Cartographic(...))
      * ]);
      */
-    function Polygon() {
+    var Polygon = function() {
         this._sp = undefined;
         this._rs = undefined;
 
@@ -228,12 +230,7 @@ define([
          * DOC_TBA
          */
         this.material = new ColorMaterial({
-            color : {
-                red : 1.0,
-                green : 1.0,
-                blue : 0.0,
-                alpha : 0.5
-            }
+            color : new Color(1.0, 1.0, 0.0, 0.5)
         });
         this._material = undefined;
 
@@ -269,7 +266,7 @@ define([
         };
         this._pickUniforms = undefined;
         this._drawUniforms = undefined;
-    }
+    };
 
     /**
      * DOC_TBA
@@ -299,9 +296,9 @@ define([
      *
      * @example
      * polygon.setPositions([
-     *   ellipsoid.toCartesian(new Cartographic2(...)),
-     *   ellipsoid.toCartesian(new Cartographic2(...)),
-     *   ellipsoid.toCartesian(new Cartographic2(...))
+     *   ellipsoid.cartographicToCartesian(new Cartographic(...)),
+     *   ellipsoid.cartographicToCartesian(new Cartographic(...)),
+     *   ellipsoid.cartographicToCartesian(new Cartographic(...))
      * ], 10.0);
      */
     Polygon.prototype.setPositions = function(positions, height) {

@@ -12,7 +12,7 @@ defineSuite([
          Matrix4,
          CesiumMath) {
     "use strict";
-    /*global it,expect,beforeEach,afterEach*/
+    /*global jasmine,describe,xdescribe,it,xit,expect,beforeEach,afterEach,beforeAll,afterAll,spyOn,runs,waits,waitsFor*/
 
     var frustum, planes;
 
@@ -120,7 +120,7 @@ defineSuite([
 
     it('get perspective projection matrix', function() {
         var projectionMatrix = frustum.getProjectionMatrix();
-        var expected = Matrix4.createPerspectiveFieldOfView(frustum.fovy, frustum.aspectRatio, frustum.near, frustum.far);
+        var expected = Matrix4.computePerspectiveFieldOfView(frustum.fovy, frustum.aspectRatio, frustum.near, frustum.far);
         expect(projectionMatrix.equalsEpsilon(expected, CesiumMath.EPSILON6)).toEqual(true);
     });
 
@@ -131,7 +131,7 @@ defineSuite([
         var left = -right;
         var near = frustum.near;
 
-        var expected = Matrix4.createInfinitePerspectiveOffCenter(left, right, bottom, top, near);
+        var expected = Matrix4.computeInfinitePerspectiveOffCenter(left, right, bottom, top, near);
         expect(expected.equals(frustum.getInfiniteProjectionMatrix())).toEqual(true);
     });
 
@@ -142,12 +142,6 @@ defineSuite([
         frustum2.fovy = (Math.PI) / 3;
         frustum2.aspectRatio = 1.0;
         expect(frustum.equals(frustum2)).toEqual(true);
-    });
-
-    it('destroys', function() {
-        expect(frustum.isDestroyed()).toEqual(false);
-        frustum.destroy();
-        expect(frustum.isDestroyed()).toEqual(true);
     });
 
     it('throws with null frustum parameters', function() {

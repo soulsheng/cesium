@@ -288,47 +288,6 @@ vec2 agi_ellipsoidWgs84TextureCoordinates(vec3 normal)
 }
 
 /**
- * Determines if a position on or near the surface of an ellipsoid is on the ellipsoid's 
- * back-face from the perspective of the viewer.  This is used to avoid z-fighting between 
- * vector data (polylines, polygons, billboards, etc.) on the surface and the ellipsoid itself.
- * <br /><br />
- * It assumes the ellipsoid's center is <code>(0, 0, 0)</code> in world coordinates.
- * <br /><br />
- * <code>oneOverEllipsoidRadiiSquared</code> is usually provided by a uniform variable, whose
- * value is computed in JavaScript using {@link Ellipsoid#getOneOverRadiiSquared}.
- *
- * @name agi_isBackFacing
- * @glslFunction
- *
- * @param {vec3} positionOnEllipsoidEC The surface position on the ellipsoid in eye coordinates. 
- * @param {vec3} oneOverEllipsoidRadiiSquared The reciprocal of the ellipsoid's squared radii.
- *
- * @returns {bool} <code>true</code> if the position is on the back-face of the ellipsoid; otherwise, <code>false</code>.
- *
- * @see Ellipsoid#getOneOverRadiiSquared
- *
- * @example
- * // discard fragment if it is back-facing
- * if (agi_isBackFacing(positionEC, oneOverEllipsoidRadiiSquared))
- * {
- *   discard;
- * }
- */
-bool agi_isBackFacing(vec3 positionOnEllipsoidEC, vec3 oneOverEllipsoidRadiiSquared)
-{
-    // If the position is assumed to be on or near the surface, avoid z-fighting with
-    // the ellipsoid by computing the position's geodetic surface normal, and
-    // essentially use it for back face culling.
-    if (oneOverEllipsoidRadiiSquared != vec3(0.0))
-    {
-        vec3 n = agi_geodeticSurfaceNormal(positionOnEllipsoidEC, agi_view[3].xyz, oneOverEllipsoidRadiiSquared);
-        return (dot(normalize(positionOnEllipsoidEC), n) > 0.0);
-    }
-    
-    return false;
-}
-    
-/**
  * Computes a 3x3 rotation matrix that transforms vectors from an ellipsoid's east-north-up coordinate system 
  * to eye coordinates.  In east-north-up coordinates, x points east, y points north, and z points along the 
  * surface normal.  East-north-up can be used as an ellipsoid's tangent space for operations such as bump mapping.
@@ -501,7 +460,7 @@ const agi_raySegment agi_emptyRaySegment = agi_raySegment(-agi_infinity, -agi_in
 /**
  * DOC_TBA
  *
- * @name agi_emptyRaySegment
+ * @name agi_fullRaySegment
  * @glslConstant 
  */
 const agi_raySegment agi_fullRaySegment = agi_raySegment(0.0, agi_infinity);

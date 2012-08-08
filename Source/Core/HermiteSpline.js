@@ -21,7 +21,7 @@ define([
      *
      * Natural and clamped cubic splines are in the class C<sup>2</sup>.
      *
-     * @name HermiteSpline
+     * @alias HermiteSpline
      * @constructor
      *
      * @param {Array} controlPoints An array, of at least length 3, of objects with <code>point</code>,
@@ -57,13 +57,13 @@ define([
      * // Add tangents
      * controlPoints[0].tangent = new Cartesian3(1125196, -161816, 270551);
      * for (var i = 1; i < controlPoints.length - 1; ++i) {
-     *     controlPoints[i].tangent = controlPoints[i + 1].point.subtract(controlPoints[i - 1].point).multiplyWithScalar(0.5);
+     *     controlPoints[i].tangent = controlPoints[i + 1].point.subtract(controlPoints[i - 1].point).multiplyByScalar(0.5);
      * }
      * controlPoints[controlPoints.length - 1].tangent = new Cartesian3(1165345, 112641, 47281);
      *
      * var spline = new HermiteSpline(controlPoints);
      */
-    function HermiteSpline(controlPoints) {
+    var HermiteSpline = function(controlPoints) {
         if (!controlPoints || !(controlPoints instanceof Array) || controlPoints.length < 3) {
             throw new DeveloperError('controlPoints is required. It must be an array with at least a length of 3.');
         }
@@ -77,7 +77,7 @@ define([
         } else if (this._points[0].tangent && !this._points[1].tangent && this._points[this._points.length - 1].tangent && !this._points[this._points.length - 2].tangent) {
             this._generateClamped();
         }
-    }
+    };
 
     HermiteSpline.hermiteCoefficientMatrix = new Matrix4(
              2.0, -3.0,  0.0,  1.0,
@@ -130,12 +130,12 @@ define([
         for (i = 1; i < l.length - 1; ++i) {
             l[i] = u[i] = 1.0;
             d[i] = 4.0;
-            r[i] = this._points[i + 1].point.subtract(this._points[i - 1].point).multiplyWithScalar(3.0);
+            r[i] = this._points[i + 1].point.subtract(this._points[i - 1].point).multiplyByScalar(3.0);
         }
         l[i] = 0.0;
         u[i] = 1.0;
         d[i] = 4.0;
-        r[i] = this._points[i + 1].point.subtract(this._points[i - 1].point).multiplyWithScalar(3.0);
+        r[i] = this._points[i + 1].point.subtract(this._points[i - 1].point).multiplyByScalar(3.0);
         d[i + 1] = 1.0;
         r[i + 1] = this._points[i + 1].tangent;
 
@@ -153,14 +153,14 @@ define([
         var i;
         l[0] = u[0] = 1.0;
         d[0] = 2.0;
-        r[0] = this._points[1].point.subtract(this._points[0].point).multiplyWithScalar(3.0);
+        r[0] = this._points[1].point.subtract(this._points[0].point).multiplyByScalar(3.0);
         for (i = 1; i < l.length; ++i) {
             l[i] = u[i] = 1.0;
             d[i] = 4.0;
-            r[i] = this._points[i + 1].point.subtract(this._points[i - 1].point).multiplyWithScalar(3.0);
+            r[i] = this._points[i + 1].point.subtract(this._points[i - 1].point).multiplyByScalar(3.0);
         }
         d[i] = 2.0;
-        r[i] = this._points[i].point.subtract(this._points[i - 1].point).multiplyWithScalar(3.0);
+        r[i] = this._points[i].point.subtract(this._points[i - 1].point).multiplyByScalar(3.0);
 
         var tangents = TridiagonalSystemSolver.solve(l, d, u, r);
         for (i = 0; i < this._points.length; ++i) {
@@ -221,11 +221,11 @@ define([
         var timeVec = new Cartesian4(0.0, u * u, u, 1.0);
         timeVec.x = timeVec.y * u;
 
-        var coefs = HermiteSpline.hermiteCoefficientMatrix.multiplyWithVector(timeVec);
-        var p0 = this._points[i].point.multiplyWithScalar(coefs.x);
-        var p1 = this._points[i + 1].point.multiplyWithScalar(coefs.y);
-        var p2 = this._points[i].tangent.multiplyWithScalar(coefs.z);
-        var p3 = this._points[i + 1].tangent.multiplyWithScalar(coefs.w);
+        var coefs = HermiteSpline.hermiteCoefficientMatrix.multiplyByVector(timeVec);
+        var p0 = this._points[i].point.multiplyByScalar(coefs.x);
+        var p1 = this._points[i + 1].point.multiplyByScalar(coefs.y);
+        var p2 = this._points[i].tangent.multiplyByScalar(coefs.z);
+        var p3 = this._points[i + 1].tangent.multiplyByScalar(coefs.w);
 
         return p0.add(p1.add(p2.add(p3)));
     };
