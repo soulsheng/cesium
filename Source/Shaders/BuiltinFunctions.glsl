@@ -437,6 +437,7 @@ vec4 agi_lightValuePhong(vec3 toLight, vec3 toEye, agi_material material)
     
     vec4 finalLighting = vec4(lighting, alpha);
     return finalLighting;
+    //return vec4(vec3(cosAngIncidence), 1.0);
 }
 
 /**
